@@ -1,5 +1,4 @@
-<img style="float:right;width:150px;
-margin-right:15px;" src="https://github.com/jolie/tquery/raw/master/tquery_logo.png" alt="">
+<img style="max-width: 150px !important;float: right !important;" src="https://github.com/jolie/tquery/raw/master/tquery_logo.png" alt="">
 
 The <a href="https://github.com/jolie/tquery">Tquery</a> project is a query framework integrated in the Jolie language for the data handling/querying of Jolie trees.
 
