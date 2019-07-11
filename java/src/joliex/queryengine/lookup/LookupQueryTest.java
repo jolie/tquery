@@ -6,6 +6,7 @@ import static jolie.js.JsUtils.parseJsonIntoValue;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Utils;
 
 public class LookupQueryTest {
     public static void main(String[] args) throws IOException, FaultException {
@@ -80,9 +81,9 @@ public class LookupQueryTest {
         lookupRequest.setFirstChild( "rightPath", "ref" );
         lookupRequest.setFirstChild( "dstPath", "awards_info" );
 		
-		System.out.println( lookupRequest.toPrettyString() );
+		System.out.println( Utils.valueToPrettyString( lookupRequest ) );
 
-        ValueVector lookup = LookupQuery.lookup(lookupRequest);
-        lookup.forEach(it -> System.out.println(it.toPrettyString()));
+        ValueVector lookup = LookupQuery.lookup( lookupRequest);
+        lookup.forEach(it -> System.out.println( Utils.valueToPrettyString( it ) ) );
     }
 }

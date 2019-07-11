@@ -29,6 +29,7 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.common.Path;
 import joliex.queryengine.common.TQueryExpression;
+import joliex.queryengine.common.Utils;
 
 public final class MatchQuery {
 
@@ -57,7 +58,7 @@ public final class MatchQuery {
 		ValueVector dataElements = matchRequest.getChildren( RequestType.DATA );
 		boolean[] mask = parseMatchExpression( query )
 				.orElseThrow( 
-					() -> new FaultException( "MatchQuerySyntaxException", "Could not parse query expression " + query.toPrettyString() ) 
+					() -> new FaultException( "MatchQuerySyntaxException", "Could not parse query expression " + Utils.valueToPrettyString( query ) ) 
 				).applyOn( dataElements );
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
@@ -87,7 +88,7 @@ public final class MatchQuery {
 		
 		private static MatchExpression unsafeParseMatchExpression( Value query ) throws IllegalArgumentException {
 		if ( query.children().size() > 1 ) {
-			throw new IllegalArgumentException( query.toPrettyString() );
+			throw new IllegalArgumentException( Utils.valueToPrettyString( query ) );
 		} else {
 			if ( query.isBool() ) {
 				return new BooleanExpression( query.boolValue() );
@@ -104,28 +105,28 @@ public final class MatchQuery {
 				return BinaryExpression.OrExpression(
 						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.OR ).getFirstChild( RequestType.QuerySubtype.LEFT ) )
 							.orElseThrow( 
-								() -> new IllegalArgumentException( "Could not parse left hand of " + query.toPrettyString() )
+								() -> new IllegalArgumentException( "Could not parse left hand of " + Utils.valueToPrettyString( query ) )
 						),
 						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.OR ).getFirstChild( RequestType.QuerySubtype.RIGHT ) )
 							.orElseThrow(
-								() -> new IllegalArgumentException( "Could not parse right hand of " + query.toPrettyString() )
+								() -> new IllegalArgumentException( "Could not parse right hand of " + Utils.valueToPrettyString( query ) )
 						)
 				);
 			} else if ( query.hasChildren( RequestType.QuerySubtype.AND ) ) {
 				return BinaryExpression.AndExpression(
 						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.AND ).getFirstChild( RequestType.QuerySubtype.LEFT ) )
 							.orElseThrow(
-								() -> new IllegalArgumentException( "Could not parse left hand of " + query.toPrettyString() )
+								() -> new IllegalArgumentException( "Could not parse left hand of " + Utils.valueToPrettyString( query ) )
 						),
 						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.AND ).getFirstChild( RequestType.QuerySubtype.RIGHT ) )
 							.orElseThrow(
-								() -> new IllegalArgumentException( "Could not parse right hand of " + query.toPrettyString() )
+								() -> new IllegalArgumentException( "Could not parse right hand of " + Utils.valueToPrettyString( query ) )
 						)
 				);
 			} else if ( query.hasChildren( RequestType.QuerySubtype.NOT ) ){
 					return new NotExpression( parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.NOT ) )
 						.orElseThrow(
-							() -> new IllegalArgumentException( "Could not parse " + query.toPrettyString() )
+							() -> new IllegalArgumentException( "Could not parse " + Utils.valueToPrettyString( query ) )
 						)
 					);
 				}

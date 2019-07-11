@@ -23,11 +23,15 @@
 
 package joliex.queryengine.common;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 import jolie.runtime.CompareOperators;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 
 public final class Utils {
@@ -81,7 +85,7 @@ public final class Utils {
 		} else {
 			throw new FaultException(
 				"MergeValueException",
-				"Values: \n" + v1.toPrettyString() + "\n and \n" + v2.toPrettyString() + "\n cannot be merged"
+				"Values: \n" + valueToPrettyString( v1 ) + "\n and \n" + valueToPrettyString( v2 ) + "\n cannot be merged"
 			);
 		}
 	}
@@ -100,6 +104,15 @@ public final class Utils {
 		} else {
 			return merge( v2, v1 ); 
 		}
+	}
+	
+	public static String valueToPrettyString( Value v ){
+		Writer writer = new StringWriter();
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( v, writer, "Value" );
+		try {
+			printer.run();
+		} catch( IOException e ) {} // Should never happen
+		return writer.toString();
 	}
 	
 }

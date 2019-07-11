@@ -29,6 +29,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.queryengine.common.Path;
+import joliex.queryengine.common.Utils;
 
 
 public class PathValueDefinition implements ValueDefinition {
@@ -44,7 +45,7 @@ public class PathValueDefinition implements ValueDefinition {
 		return path.apply( value ).orElseGet( () -> {
 			Logger.getLogger(PathValueDefinition.class.getName())
 					.log( Level.SEVERE, null, new FaultException( "IllegalEvaluation",
-							"Tried to apply path " + path.toPrettyString() + " on " + value.toPrettyString()));
+							"Tried to apply path " + path.toPrettyString() + " on " + Utils.valueToPrettyString( value ) ) );
 			ValueVector v = ValueVector.create();
 			v.add(Value.create());
 			return v;

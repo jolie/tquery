@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Utils;
 import joliex.queryengine.match.MatchExpression;
 import joliex.queryengine.match.MatchQuery;
 
@@ -82,7 +83,7 @@ public class ValueDefinitionParser {
 		return MatchQuery.parseMatchExpression( value ).orElseThrow( 
 					() -> new FaultException( 
 							"MatchQuerySyntaxException", 
-							"Could not parse query expression " + value.getFirstChild( ValueDefinitionType.MATCH ).toPrettyString() ) );
+							"Could not parse query expression " + Utils.valueToPrettyString( value.getFirstChild( ValueDefinitionType.MATCH ) ) ) );
 	}
 	
 }
