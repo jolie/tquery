@@ -1,5 +1,6 @@
 package joliex.queryengine.lookup;
 
+import java.util.Optional;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -8,8 +9,6 @@ import joliex.queryengine.common.TQueryExpression;
 import joliex.queryengine.common.Utils;
 import joliex.queryengine.match.EqualExpression;
 import joliex.queryengine.project.ValueToPathProjectExpression;
-
-import java.util.Optional;
 
 public final class LookupQuery {
     private static class RequestType {
@@ -37,7 +36,7 @@ public final class LookupQuery {
 
             Path path = Path.parsePath(leftPath.strValue());
             Optional<ValueVector> values = path.apply(leftValue);
-            if (values.isPresent()) {
+            if ( values.isPresent() ) {
                 EqualExpression v = new EqualExpression(Path.parsePath(rightPath.strValue()), values.get());
                 boolean[] mask = v.applyOn(rightData);
                 for ( int i = 0; i < mask.length; i++ ) {

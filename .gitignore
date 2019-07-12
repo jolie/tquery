@@ -1,3 +1,7 @@
 /java/nbproject/*
 /java/dist/*
 /java/build/*
+tests/tquery.iol
+tests/lib/tqueryJavaServices.jar
+java/nbproject/genfiles.properties
+java/nbproject/build-impl.xml
