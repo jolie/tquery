@@ -1,0 +1,24 @@
+[
+  {
+    "quality":
+    [
+      "good",
+      "good"
+    ],
+    "patient_id":
+    [
+      "xxx"
+    ]
+  },
+  {
+    "quality":
+    [
+      "poor",
+      "good"
+    ],
+    "patient_id":
+    [
+      "xxx"
+    ]
+  }
+]

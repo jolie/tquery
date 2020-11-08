@@ -13,7 +13,6 @@ plugins {
 }
 
 repositories {
-
     jcenter()
 }
 
@@ -29,7 +28,6 @@ dependencies {
 }
 
 test {
-    // Use junit platform for unit tests
     useJUnitPlatform()
 }
 

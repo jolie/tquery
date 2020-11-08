@@ -26,23 +26,31 @@ public final class LookupQuery {
         ValueVector leftData = lookupRequest.getChildren(RequestType.LEFT_DATA);
         ValueVector rightData = lookupRequest.getChildren(RequestType.RIGHT_DATA);
 
-        Value leftPath = lookupRequest.getFirstChild(RequestType.LEFT_PATH);
-        Value rightPath = lookupRequest.getFirstChild(RequestType.RIGHT_PATH);
+        Value leftPathValue = lookupRequest.getFirstChild(RequestType.LEFT_PATH);
+        Value rightPathValue = lookupRequest.getFirstChild(RequestType.RIGHT_PATH);
         Value dstPath = lookupRequest.getFirstChild(RequestType.DST_PATH);
 
         ValueVector result = ValueVector.create();
 
+        Path leftPath = Path.parsePath(leftPathValue.strValue());
+        Path rightPath = Path.parsePath(rightPathValue.strValue());
+
         for (Value leftValue : leftData) {
             ValueVector responseVector = ValueVector.create();
 
-            Path path = Path.parsePath(leftPath.strValue());
-            Optional<ValueVector> values = path.apply(leftValue);
-            if ( values.isPresent() ) {
-                EqualExpression v = new EqualExpression(Path.parsePath(rightPath.strValue()), values.get());
+            //result of the path application to the first tree (leftValue) of leftData array
+            Optional<ValueVector> optionalValues = leftPath.apply(leftValue);
+
+            if ( optionalValues.isPresent() ) {
+                ValueVector values = optionalValues.get();
+
+                //check if the rightData array contains any tree under the rightPath with the content equals to the content of values
+                EqualExpression v = new EqualExpression(rightPath, values);
                 boolean[] mask = v.applyOn(rightData);
+
                 for ( int i = 0; i < mask.length; i++ ) {
                     if ( mask[i] ) {
-                        responseVector.add( values.get().get(i));
+                        responseVector.add(rightData.get(i));
                     }
                 }
 
