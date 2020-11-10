@@ -1,32 +1,45 @@
 [
   {
-    "temperatures":
-    [
-      36, 37, 36
+    "temperatures": [
+      36,
+      37,
+      36
     ],
-    "patient_id":
-    [
+    "patient_id": [
       "xxx"
     ]
   },
-{
-  "temperatures":
-  [
-    37, 37, 37
-  ],
-  "patient_id":
-  [
-    "xxx"
-  ]
-},
-{
-  "temperatures":
-  [
-    38, 39, 36
-  ],
-  "patient_id":
-  [
-    "xxx"
-  ]
-}
+  {
+    "temperatures": [
+      37,
+      37,
+      37
+    ],
+    "patient_id": [
+      "xxx"
+    ]
+  },
+  {
+    "temperatures": [
+      38,
+      39,
+      36
+    ],
+    "patient_id": [
+      "xxx"
+    ]
+  },
+  {
+    "temperatures": [
+      40,
+      40,
+      40
+    ],
+    "patient": [
+      {
+        "patient_id": "xxx",
+        "device": "j7Rg&6"
+      }
+    ]
+  }
 ]

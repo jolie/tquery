@@ -1,0 +1,90 @@
+[
+  {
+    "quality":
+    [
+      "good",
+      "good"
+    ],
+    "patient_id":
+    [
+      "xxx"
+    ],
+    "temps":
+    [
+      {
+        "temperatures": [
+          36,
+          37,
+          36
+        ],
+        "patient_id": [
+          "xxx"
+        ]
+      },
+      {
+        "temperatures": [
+          37,
+          37,
+          37
+        ],
+        "patient_id": [
+          "xxx"
+        ]
+      },
+      {
+        "temperatures": [
+          38,
+          39,
+          36
+        ],
+        "patient_id": [
+          "xxx"
+        ]
+      }
+    ]
+  },
+  {
+    "quality":
+    [
+      "poor",
+      "good"
+    ],
+    "patient_id":
+    [
+      "xxx"
+    ],
+    "temps":
+    [
+      {
+        "temperatures": [
+          36,
+          37,
+          36
+        ],
+        "patient_id": [
+          "xxx"
+        ]
+      },
+      {
+        "temperatures": [
+          37,
+          37,
+          37
+        ],
+        "patient_id": [
+          "xxx"
+        ]
+      },
+      {
+        "temperatures": [
+          38,
+          39,
+          36
+        ],
+        "patient_id": [
+          "xxx"
+        ]
+      }
+    ]
+  }
+]

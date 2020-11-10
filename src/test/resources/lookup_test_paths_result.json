@@ -1,0 +1,56 @@
+[
+  {
+    "quality":
+    [
+      "good",
+      "good"
+    ],
+    "patient_id":
+    [
+      "xxx"
+    ],
+    "temps":
+    [
+      {
+        "temperatures": [
+          40,
+          40,
+          40
+        ],
+        "patient": [
+          {
+            "patient_id": "xxx",
+            "device": "j7Rg&6"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "quality":
+    [
+      "poor",
+      "good"
+    ],
+    "patient_id":
+    [
+      "xxx"
+    ],
+    "temps":
+    [
+      {
+        "temperatures": [
+          40,
+          40,
+          40
+        ],
+        "patient": [
+          {
+            "patient_id": "xxx",
+            "device": "j7Rg&6"
+          }
+        ]
+      }
+    ]
+  }
+]
