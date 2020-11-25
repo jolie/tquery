@@ -13,7 +13,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
  *   GNU General Public License for more details.                              *
  *                                                                             *
- *   You should have received a copy of the GNU Library General Public         * 
+ *   You should have received a copy of the GNU Library General Public         *
  *   License along with this program; if not, write to the                     *
  *   Free Software Foundation, Inc.,                                           *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
@@ -31,10 +31,10 @@ import joliex.queryengine.common.Utils;
 import java.util.Optional;
 
 public class EqualExpression implements MatchExpression {
-	
+
 	private final Path path;
 	private final ValueVector vector;
-	
+
 	public EqualExpression( Path path, ValueVector vector ){
 		this.path = path;
 		this.vector = vector;
@@ -52,7 +52,7 @@ public class EqualExpression implements MatchExpression {
 	@Override
 	public boolean applyOn( Value element ) {
 		Optional<ValueVector> pathApplication = path.apply( element );
-		return pathApplication.isEmpty() ? false : Utils.checkVectorEquality( pathApplication.get(), vector );
+		return pathApplication.isPresent() && Utils.checkVectorEquality( pathApplication.get(), vector );
 	}
-	
+
 }

@@ -13,7 +13,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
  *   GNU General Public License for more details.                              *
  *                                                                             *
- *   You should have received a copy of the GNU Library General Public         * 
+ *   You should have received a copy of the GNU Library General Public         *
  *   License along with this program; if not, write to the                     *
  *   Free Software Foundation, Inc.,                                           *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public final class Utils {
@@ -49,7 +50,7 @@ public final class Utils {
 			return false;
 		}
 	}
-	
+
 	public static boolean checkVectorEquality( ValueVector v1, ValueVector v2 ){
 		if ( v1.size() == v2.size() ){
 			for ( int i = 0; i < v1.size(); i++ ) {
@@ -62,7 +63,7 @@ public final class Utils {
 			return false;
 		}
 	}
-	
+
 	public static Value merge( Value v1, Value v2 ) throws FaultException {
 		if( CompareOperators.EQUAL.test( v1, v2 ) ){
 			Value returnValue = v1.clone();
@@ -86,7 +87,7 @@ public final class Utils {
 			);
 		}
 	}
-	
+
 	public static ValueVector merge( ValueVector v1, ValueVector v2 ) throws FaultException{
 		if( v1.size() >= v2.size() ){
 			ValueVector returnVector = ValueVector.create();
@@ -99,10 +100,10 @@ public final class Utils {
 			}
 			return returnVector;
 		} else {
-			return merge( v2, v1 ); 
+			return merge( v2, v1 );
 		}
 	}
-	
+
 	public static String valueToPrettyString( Value v ){
 		Writer writer = new StringWriter();
 		ValuePrettyPrinter printer = new ValuePrettyPrinter( v, writer, "Value" );
@@ -111,5 +112,11 @@ public final class Utils {
 		} catch( IOException e ) {} // Should never happen
 		return writer.toString();
 	}
-	
+
+	public static ValueVector listToValueVector( List< Value > values ){
+		ValueVector returnVector = ValueVector.create();
+		values.stream().forEach( returnVector::add );
+		return returnVector;
+	}
+
 }

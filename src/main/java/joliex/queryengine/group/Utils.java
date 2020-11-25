@@ -26,6 +26,7 @@ package joliex.queryengine.group;
 import jolie.js.JsUtils;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.util.Pair;
 import joliex.queryengine.common.Path;
@@ -38,6 +39,8 @@ import javax.management.RuntimeErrorException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -68,6 +71,19 @@ public class Utils {
 		return new GroupPair( sourcePath, destinationPath );
 	}
 
+	private static class DistinctFilter {
+		Set< ValueVector > seen;
+		DistinctFilter(){ seen = new HashSet<>(); }
+		public boolean isDistinct( ValueVector element ) {
+			if ( seen.stream().anyMatch( v -> joliex.queryengine.common.Utils.checkVectorEquality( v, element ) ) ){
+				return false;
+			} else {
+				seen.add( element );
+				return true;
+			}
+		}
+	}
+
 	public static void main( String[] args ) throws IOException {
 //		String jsonString = "{ \"data\": [\n" +
 //			"  { \"a\": [ { \"d\" : [ \"1.a.d.1\" , \"1.a.d.2\" , \"1.a.d.3\" ] }, { \"e\": [ \"1.a.e.1\", \"1.a.e.2\" ] } ], \"b\": [ \"1.b.1\", \"1.b.2\" ], \"c\": { \"f\": [ \"1.c.f.1\", \"1.c.f.2\" ] } },\n" +
@@ -76,6 +92,7 @@ public class Utils {
 //			"]}";
 		String jsonString = "{ \"data\": [\n" +
 				"  { \"a\": [ { \"d\" : [ 5, 3, 1 ] }, { \"e\": [ 2, 4 ] } ], \"b\": [ 1, 3 ], \"c\": { \"f\": [ 1, 6 ] } },\n" +
+				"  { \"a\": [ { \"d\" : [ 5, 3, 1 ] }, { \"e\": [ 6, 7 ] } ], \"b\": [ 1, 3 ], \"c\": { \"f\": [ 1, 6 ] } },\n" +
 				"  { \"a\": { \"e\": [ 2, 5 ] }, \"b\": [ 9 ], \"c\": { \"f\": [ 6 ] } }, \n" +
 				"  { \"a\": { \"d\": [ 1, 8, 7 ] }, \"c\": { \"f\": [  1 ] } }\n" +
 				"]}";
@@ -95,25 +112,107 @@ public class Utils {
 		ValueVector dataElements = v.children().get( "data" );
 		ValueVector resultElements = ValueVector.create();
 
-		// we get all the combinations h \in H of the grouping set
-		// (e.g., (\neg \exists s1, ..., \neg \exists sn), (\exists s1, ..., \neg \exists sn), etc
 		List< List< Boolean > > combinations = getCombinations( groupingList.size() );
 		List< MatchExpression > existenceGroups =
 				combinations.stream().map( c -> getMatchExistenceExpression( c, groupingList ) ).collect( Collectors.toList() );
-		List< ValueVector > concatenationList =
+		List< List< Value > > concatenationList =
 			existenceGroups.stream().map( matchExpression -> {
 				boolean[] bitMask = matchExpression.applyOn( dataElements );
 				List< Value > dataList = IntStream.range( 0, bitMask.length )
 						.filter( i -> bitMask[ i ] )
 						.mapToObj( dataElements::get )
 						.collect( Collectors.toList() );
-				return group( dataList, bitMask, groupingList, aggregationList );
+				return group( dataList, combinations.get( existenceGroups.indexOf( matchExpression ) ), groupingList, aggregationList );
 			}).collect( Collectors.toList() );
+		concatenationList.forEach( l -> l.forEach( e -> System.out.println( joliex.queryengine.common.Utils.valueToPrettyString( e ) ) ) );
 	}
 
-	private static ValueVector group( List< Value > dataList, boolean[] combination, List< GroupPair > groupingList, List< GroupPair > aggregationList ){
-		System.out.println( Arrays.toString( combination ) );
-		return null;
+	private static List< Value > group( List< Value > dataList, List< Boolean > combination, List< GroupPair > groupingList, List< GroupPair > aggregationList ){
+		List< Value > returnVector = new ArrayList<>();
+		if( dataList.size() > 0 ){
+			if( combination.stream().anyMatch( i -> i ) ){
+				List< Path > paths = IntStream.range( 0, combination.size() ).filter( combination::get ).mapToObj( i -> groupingList.get( i ).srcPath() ).collect( Collectors.toList() );
+				boolean[] bitMask = getMatchGroupingExpression( paths, dataList.get( 0 ) )
+						.applyOn( joliex.queryengine.common.Utils.listToValueVector( dataList ) );
+				List< Value > current = new ArrayList<>();
+				List< Value > residuals = new ArrayList<>();
+				IntStream.range( 0, bitMask.length ).forEach( i -> {
+					if( bitMask[ i ] ){
+						current.add( dataList.get( i ) );
+					} else {
+						residuals.add( dataList.get( i ) );
+					}
+				} );
+				returnVector.add( aggregate( current, groupingList, aggregationList ) );
+				returnVector.addAll( group( residuals, combination, groupingList, aggregationList ) );
+			} else {
+				returnVector.add( aggregate( dataList, groupingList, aggregationList ) );
+			}
+		}
+		return returnVector;
+	}
+
+	private static MatchExpression getMatchGroupingExpression( List< Path > paths, Value v  ){
+		if( paths.size() < 0 ){
+			throw new RuntimeException( "getMatchGroupingExpression received a combination of size 0" ); //todo: refine this error into a Fault
+		} else {
+			MatchExpression currentExpression = new EqualExpression( paths.get( 0 ), paths.get( 0 ).apply( v ).get() ); // we can always get here, because we passed the existence tests in the group method
+			if( paths.size() > 1 ){
+				return BinaryExpression.AndExpression(
+						currentExpression,
+						getMatchGroupingExpression( paths.subList( 1, paths.size() ), v )
+				);
+			} else {
+				return currentExpression;
+			}
+		}
+	}
+
+	private static Value aggregate( List< Value > dataList, List< GroupPair > groupingList, List< GroupPair > aggregationList ){
+		Value returnValue = Value.create();
+		ProjectExpressionChain returnProjectionChain = new ProjectExpressionChain();
+		groupingList.forEach( groupElement ->
+		{
+			try {
+				Optional< ValueVector > maybeValueVector = groupElement.srcPath().apply( dataList.get( 0 ) );
+				if( maybeValueVector.isPresent() ){
+					returnProjectionChain.addExpression(
+							new ValueToPathProjectExpression(
+									groupElement.dstPath(),
+									new ConstantValueDefinition( maybeValueVector.get() )
+							) );
+				}
+			} catch( FaultException e ){
+				e.printStackTrace();
+			}
+		} );
+		aggregationList.forEach( aggregationElement ->
+		{
+			DistinctFilter d = new DistinctFilter();
+			List< ValueVector > distinctValueVectors = dataList.stream()
+					.map( v -> aggregationElement.srcPath().apply( v ) )
+					.filter( Optional::isPresent )
+					.map( Optional::get )
+					.filter( d::isDistinct )
+					.collect( Collectors.toList() );
+			ValueVector mergedValueVector = ValueVector.create();
+			distinctValueVectors.stream().flatMap( ValueVector::stream ).forEach( mergedValueVector::add );
+			try {
+				returnProjectionChain.addExpression(
+						new ValueToPathProjectExpression(
+								aggregationElement.dstPath(),
+								new ConstantValueDefinition( mergedValueVector )
+						) );
+			} catch( FaultException e ){
+				e.printStackTrace();
+			}
+		} );
+		try{
+			returnValue = returnProjectionChain.applyOn( returnValue );
+		} catch( FaultException e ){
+			e.printStackTrace();
+		}
+		return returnValue;
 	}
 
 	private static List< List< Boolean > > getCombinations( int size ) {
@@ -134,18 +233,19 @@ public class Utils {
 	}
 
 	private static MatchExpression getMatchExistenceExpression( List< Boolean > combination, List< GroupPair > groupPairList ){
-		MatchExpression currentExpression = new ExistsExpression( groupPairList.get( 0 ).s );
-		currentExpression = combination.get( 0 ) ? currentExpression : new NotExpression( currentExpression );
-		if( combination.size() > 1 ){
-			return BinaryExpression.AndExpression(
-					currentExpression,
-					getMatchExistenceExpression( combination.subList( 1, combination.size() - 1 ), groupPairList.subList( 1, combination.size() - 1 ) )
-			);
-		}
-		if( combination.size() > 0 ){
-			return currentExpression;
-		} else {
+		if( combination.size() < 0 || groupPairList.size() < 0 ){
 			throw new RuntimeException( "getMatchExistenceExpression received a combination of size 0" ); //todo: refine this error into a Fault
+		} else {
+			MatchExpression currentExpression = new ExistsExpression( groupPairList.get( 0 ).srcPath() );
+			currentExpression = combination.get( 0 ) ? currentExpression : new NotExpression( currentExpression );
+			if( combination.size() > 1 ){
+				return BinaryExpression.AndExpression(
+						currentExpression,
+						getMatchExistenceExpression( combination.subList( 1, combination.size() ), groupPairList.subList( 1, combination.size() ) )
+				);
+			} else {
+				return currentExpression;
+			}
 		}
 	}
 

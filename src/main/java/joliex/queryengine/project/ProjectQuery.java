@@ -13,7 +13,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
  *   GNU General Public License for more details.                              *
  *                                                                             *
- *   You should have received a copy of the GNU Library General Public         * 
+ *   You should have received a copy of the GNU Library General Public         *
  *   License along with this program; if not, write to the                     *
  *   Free Software Foundation, Inc.,                                           *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
@@ -40,7 +40,7 @@ public class ProjectQuery {
 			private static final String VALUE = "value";
 		}
 	}
-	
+
 	public static Value project( Value projectRequest ) throws FaultException {
 		ValueVector query = projectRequest.getChildren( RequestType.QUERY );
 		ValueVector dataElements = projectRequest.getChildren( RequestType.DATA );
@@ -53,7 +53,7 @@ public class ProjectQuery {
 		}
 		return response;
 	}
-	
+
 	private static ProjectExpressionChain parseProjectionChain( ValueVector queries ) throws FaultException {
 		ProjectExpressionChain returnExpressionChain = new ProjectExpressionChain();
 		for ( Value query : queries ) {
@@ -61,15 +61,15 @@ public class ProjectQuery {
 		}
 		return returnExpressionChain;
 	}
-	
+
 	private static TQueryExpression parseProjectExpression( Value query ) throws FaultException {
 		if ( query.isString() ){
 			return new PathProjectExpression( query.strValue() );
-		} 
+		}
 		else {
-			return new ValueToPathProjectExpression( 
-					query.getFirstChild( RequestType.ValueToPathExpression.DESTINATION_PATH ).strValue(), 
-					query.getChildren( RequestType.ValueToPathExpression.VALUE ) 
+			return new ValueToPathProjectExpression(
+					query.getFirstChild( RequestType.ValueToPathExpression.DESTINATION_PATH ).strValue(),
+					query.getChildren( RequestType.ValueToPathExpression.VALUE )
 			);
 		}
 	}
