@@ -22,7 +22,7 @@ public final class LookupQuery {
 
     }
 
-    public static ValueVector lookup(Value lookupRequest) throws FaultException {
+	public static Value lookup( Value lookupRequest ) throws FaultException {
         ValueVector leftData = lookupRequest.getChildren(RequestType.LEFT_DATA);
         ValueVector rightData = lookupRequest.getChildren(RequestType.RIGHT_DATA);
 
@@ -35,34 +35,35 @@ public final class LookupQuery {
         Path leftPath = Path.parsePath(leftPathValue.strValue());
         Path rightPath = Path.parsePath(rightPathValue.strValue());
 
-        for (Value leftValue : leftData) {
-            ValueVector responseVector = ValueVector.create();
+        for (Value leftValue : leftData){
+			ValueVector responseVector = ValueVector.create();
 
-            //result of the path application to the first tree (leftValue) of leftData array
-            Optional<ValueVector> optionalValues = leftPath.apply(leftValue);
+			//result of the path application to the first tree (leftValue) of leftData array
+			Optional< ValueVector > optionalValues = leftPath.apply( leftValue );
 
-            if ( optionalValues.isPresent() ) {
-                ValueVector values = optionalValues.get();
+			if( optionalValues.isPresent() ){
+				ValueVector values = optionalValues.get();
 
-                //check if the rightData array contains any tree under the rightPath with the content equals to the content of values
-                EqualExpression v = new EqualExpression(rightPath, values);
-                boolean[] mask = v.applyOn(rightData);
+				//check if the rightData array contains any tree under the rightPath with the content equals to the content of values
+				EqualExpression v = new EqualExpression( rightPath, values );
+				boolean[] mask = v.applyOn( rightData );
 
-                for ( int i = 0; i < mask.length; i++ ) {
-                    if ( mask[i] ) {
-                        responseVector.add(rightData.get(i));
-                    }
-                }
+				for( int i = 0; i < mask.length; i++ ){
+					if( mask[ i ] ){
+						responseVector.add( rightData.get( i ) );
+					}
+				}
 
-                TQueryExpression beta = new ValueToPathProjectExpression(dstPath.strValue(), responseVector);
-                Value value = beta.applyOn(leftValue);
+				TQueryExpression beta = new ValueToPathProjectExpression( dstPath.strValue(), responseVector );
+				Value value = beta.applyOn( leftValue );
 
-                result.add(Utils.merge(leftValue, value));
-            }
+				result.add( Utils.merge( leftValue, value ) );
+			}
 
-        }
-
-        return result;
+		}
+		Value response = Value.create();
+		response.children().put( TQueryExpression.ResponseType.RESULT, result );
+		return response;
     }
 
 }

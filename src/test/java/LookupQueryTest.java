@@ -50,12 +50,12 @@ public class LookupQueryTest {
         lookupRequest.setFirstChild(RIGHT_PATH, "patient_id");
         lookupRequest.setFirstChild(DST_PATH, "temps");
 
-        ValueVector lookup = LookupQuery.lookup(lookupRequest);
+        Value lookup = LookupQuery.lookup(lookupRequest);
         Value testResultData = Value.create();
         parseJsonIntoValue(new FileReader(PATH_TO_RESOURCES + "/" + TEST_RESULT_NAME), testResultData, false);
         ValueVector children = testResultData.getChildren("_");
 
-        assert(Utils.checkVectorEquality(lookup, children));
+        assert(Utils.checkVectorEquality( lookup.getChildren( "result" ), children));
     }
 
     @Test
@@ -71,13 +71,13 @@ public class LookupQueryTest {
         lookupRequest.setFirstChild(RIGHT_PATH, "patient.patient_id");
         lookupRequest.setFirstChild(DST_PATH, "temps");
 
-        ValueVector lookup = LookupQuery.lookup(lookupRequest);
+        Value lookup = LookupQuery.lookup(lookupRequest);
 
         Value testResultData = Value.create();
         parseJsonIntoValue(new FileReader(PATH_TO_RESOURCES + "/" + TEST_RESULT_NAME), testResultData, false);
         ValueVector children = testResultData.getChildren("_");
 
-        assert(Utils.checkVectorEquality(lookup, children));
+        assert(Utils.checkVectorEquality(lookup.getChildren( "result" ), children));
     }
 
     @Test
@@ -91,8 +91,8 @@ public class LookupQueryTest {
         lookupRequest.setFirstChild(RIGHT_PATH, "quality");
         lookupRequest.setFirstChild(DST_PATH, "temp");
 
-        ValueVector lookup = LookupQuery.lookup(lookupRequest);
+        Value lookup = LookupQuery.lookup(lookupRequest);
 
-        assert (leftDataArray.first().equals(lookup.first()));
+        assert (leftDataArray.first().equals(lookup.getChildren( "result" ).first()));
     }
 }

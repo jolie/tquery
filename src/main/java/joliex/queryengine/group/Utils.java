@@ -67,7 +67,7 @@ public class Utils {
 
 	}
 
-	public GroupPair getGroupPair( Path sourcePath, Path destinationPath ) {
+	public static GroupPair getGroupPair( Path sourcePath, Path destinationPath ) {
 		return new GroupPair( sourcePath, destinationPath );
 	}
 
@@ -101,13 +101,12 @@ public class Utils {
 
 		// grouping request parsing, i.e., s_1 > r_1, ..., s_n > r_n
 		List< GroupPair > groupingList = new ArrayList<>();
-		Utils u = new Utils();
-		groupingList.add( u.getGroupPair( Path.parsePath( "a.d" ), Path.parsePath( "nodeA" ) ) );
-		groupingList.add( u.getGroupPair( Path.parsePath( "b" ), Path.parsePath( "nodeB" ) ) );
-		groupingList.add( u.getGroupPair( Path.parsePath( "c" ), Path.parsePath( "nodeC" ) ) );
+		groupingList.add( getGroupPair( Path.parsePath( "a.d" ), Path.parsePath( "nodeA" ) ) );
+		groupingList.add( getGroupPair( Path.parsePath( "b" ), Path.parsePath( "nodeB" ) ) );
+		groupingList.add( getGroupPair( Path.parsePath( "c" ), Path.parsePath( "nodeC" ) ) );
 
 		List< GroupPair > aggregationList = new ArrayList<>();
-		aggregationList.add( u.getGroupPair( Path.parsePath( "a.e" ), Path.parsePath( "nodeE" ) ) );
+		aggregationList.add( getGroupPair( Path.parsePath( "a.e" ), Path.parsePath( "nodeE" ) ) );
 
 		ValueVector dataElements = v.children().get( "data" );
 		ValueVector resultElements = ValueVector.create();
