@@ -13,7 +13,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
  *   GNU General Public License for more details.                              *
  *                                                                             *
- *   You should have received a copy of the GNU Library General Public         * 
+ *   You should have received a copy of the GNU Library General Public         *
  *   License along with this program; if not, write to the                     *
  *   Free Software Foundation, Inc.,                                           *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
@@ -27,33 +27,44 @@ import jolie.js.JsUtils;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.util.Pair;
 import joliex.queryengine.common.Path;
 import joliex.queryengine.match.*;
 import joliex.queryengine.project.ProjectExpressionChain;
 import joliex.queryengine.project.ValueToPathProjectExpression;
 import joliex.queryengine.project.valuedefinition.ConstantValueDefinition;
 
+import javax.management.RuntimeErrorException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Utils {
-	
-	public class GroupPair {
+
+	public static class GroupPair {
 		private final Path s, d;
 
 		public GroupPair( Path sourcePath, Path destinationPath ) {
 			this.s = sourcePath;
 			this.d = destinationPath;
 		}
-		
-		public Path getDstPath() { return d; } public Path getSrcPath() { return s; }
-		
+
+		public Path dstPath() {
+			return d;
+		}
+
+		public Path srcPath() {
+			return s;
+		}
+
 	}
-	
-	public GroupPair getGroupPair( Path sourcePath, Path destinationPath ){
+
+	public GroupPair getGroupPair( Path sourcePath, Path destinationPath ) {
 		return new GroupPair( sourcePath, destinationPath );
 	}
 
@@ -64,213 +75,78 @@ public class Utils {
 //			"  { \"a\": { \"d\": [ \"3.a.d.1\", \"3.a.d.2\", \"3.a.d.3\", \"3.a.d.4\", \"3.a.d.5\", \"3.a.d.6\" ] }, \"c\": { \"f\": [  \"3.c.f.1\" ] } }\n" +
 //			"]}";
 		String jsonString = "{ \"data\": [\n" +
-			"  { \"a\": [ { \"d\" : [ 5, 3, 1 ] }, { \"e\": [ 2, 4 ] } ], \"b\": [ 1, 3 ], \"c\": { \"f\": [ 1, 6 ] } },\n" +
-			"  { \"a\": { \"e\": [ 2, 5 ] }, \"b\": [ 9 ], \"c\": { \"f\": [ 6 ] } }, \n" +
-			"  { \"a\": { \"d\": [ 1, 8, 7 ] }, \"c\": { \"f\": [  1 ] } }\n" +
-			"]}";
+				"  { \"a\": [ { \"d\" : [ 5, 3, 1 ] }, { \"e\": [ 2, 4 ] } ], \"b\": [ 1, 3 ], \"c\": { \"f\": [ 1, 6 ] } },\n" +
+				"  { \"a\": { \"e\": [ 2, 5 ] }, \"b\": [ 9 ], \"c\": { \"f\": [ 6 ] } }, \n" +
+				"  { \"a\": { \"d\": [ 1, 8, 7 ] }, \"c\": { \"f\": [  1 ] } }\n" +
+				"]}";
 		Value v = Value.create();
 		JsUtils.parseJsonIntoValue( new StringReader( jsonString ), v, false );
-		
+
 		// grouping request parsing, i.e., s_1 > r_1, ..., s_n > r_n
-		List<GroupPair> groupingList = new ArrayList<>();
+		List< GroupPair > groupingList = new ArrayList<>();
 		Utils u = new Utils();
 		groupingList.add( u.getGroupPair( Path.parsePath( "a.d" ), Path.parsePath( "nodeA" ) ) );
 		groupingList.add( u.getGroupPair( Path.parsePath( "b" ), Path.parsePath( "nodeB" ) ) );
 		groupingList.add( u.getGroupPair( Path.parsePath( "c" ), Path.parsePath( "nodeC" ) ) );
-		
-		List<GroupPair> aggregationList = new ArrayList<>();
+
+		List< GroupPair > aggregationList = new ArrayList<>();
 		aggregationList.add( u.getGroupPair( Path.parsePath( "a.e" ), Path.parsePath( "nodeE" ) ) );
-		
+
 		ValueVector dataElements = v.children().get( "data" );
 		ValueVector resultElements = ValueVector.create();
-		for ( Integer[] H : getPowerSet( groupingList ) ) {
-			Map< Integer, ArrayList< ValueVector > > values = getValues( H, groupingList, dataElements );
-			// this is a', i.e., all possible combinations of values, given a chosen set H of paths s_1, ..., s_n
-			ArrayList< ArrayList< ValueVector > > combinations = getCombinations( values );
-			// we concatenate the result of the projection for all the combinations (a')
-			
-			ValueVector returnValue = ValueVector.create();
-			// we merge the projection for a given a'
-			for ( ArrayList<ValueVector> combination : combinations ) {
-				try {
-					Value chi = getValueToPathProjection( H, combination, groupingList ).applyOn( Value.create() );
-					Value tmp = Value.create();
-					for ( GroupPair qi : aggregationList ) {
-						// we need to merge the results for the whole aggregationList into a single tree
-//						getMatchExpression( qi, H, groupingList, combination )
-						// then we add it into resultValue
-					}
-						// for i = 0 to n
-						// for t_i in match( a, q_i, ~s_j, ~<s_h, a_h>)
-							// concatenate t_i [[ q_i ]]^t_i > p_i
-				} catch ( FaultException ex ) {
-					Logger.getLogger( Utils.class.getName() ).log( Level.SEVERE, null, ex );
-				}
-			}
-//			System.out.println( "- - - - - - - - - H is: " + Arrays.toString( H ) + " - - - - - - - - " );
-//			for (ArrayList<Value> combination : combinations) {
-//				System.out.print("[ ");
-//				int i = 0;
-//				for (Value value : combination) {
-//					System.out.print("pos: " + i++ + value.toPrettyString().trim() + ",");
-//				}
-//				System.out.println("]\n- - - - ");
-//			}
-		}
-	}
-	
-	private static boolean sorted( Integer[] H ){
-		for ( int i = 0; i < H.length-1; i++ ) {
-			if( H[ i ] > H[ i+1 ] ){
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	private static MatchExpression getMatchExpression( GroupPair qi, Integer[] H, List<GroupPair> groupingList, ArrayList<ValueVector> combination ) {
-		assert sorted( H );
-		MatchExpression returnExpression = new ExistsExpression( qi.getSrcPath() );
-		// we prepare the doNotExistSj expression
-		// find all sj (not in H)
-		Optional<MatchExpression> doNotExistSj = Optional.empty();
-		Optional<MatchExpression> existsShAndEqualComb = Optional.empty();
-		int j, i; j = i = 0;
-		for ( ; i < groupingList.size(); i++ ) {
-			if( i == H[ j ] ){
-				existsShAndEqualComb = ( existsShAndEqualComb.isEmpty() ) ?
-						Optional.of( BinaryExpression.AndExpression( 
-							new ExistsExpression( groupingList.get( i ).getSrcPath() ), 
-							new EqualExpression( groupingList.get( i ).getSrcPath(), combination.get( i ) )
-						) ) :
-						Optional.of( BinaryExpression.AndExpression(
-							BinaryExpression.AndExpression(
-								new ExistsExpression(( groupingList.get( i ).getSrcPath() ) ),
-								new EqualExpression( groupingList.get( i ).getSrcPath(), combination.get( i ) )
-							),
-							existsShAndEqualComb.get()
-						) );
-				j++;
-			} else {
-				doNotExistSj = ( doNotExistSj.isEmpty() ) ? 
-					Optional.of( new ExistsExpression( groupingList.get( i ).getSrcPath() ) ) :
-					Optional.of( 
-						BinaryExpression.OrExpression( 
-							doNotExistSj.get(), 
-							new ExistsExpression( groupingList.get( i ).getSrcPath() )
-						)
-					);
-			}
-		}
-		if ( doNotExistSj.isPresent() ){ doNotExistSj = Optional.of( new NotExpression( doNotExistSj.get() ) ); }
-		Optional<MatchExpression> sh = Optional.empty();
-		if( doNotExistSj.isPresent() ){
-			returnExpression = BinaryExpression.AndExpression( returnExpression, doNotExistSj.get() );
-		}
-		if( existsShAndEqualComb.isPresent() ){
-			returnExpression = BinaryExpression.AndExpression(returnExpression, existsShAndEqualComb.get() );
-		}
-		return returnExpression;
+
+		// we get all the combinations h \in H of the grouping set
+		// (e.g., (\neg \exists s1, ..., \neg \exists sn), (\exists s1, ..., \neg \exists sn), etc
+		List< List< Boolean > > combinations = getCombinations( groupingList.size() );
+		List< MatchExpression > existenceGroups =
+				combinations.stream().map( c -> getMatchExistenceExpression( c, groupingList ) ).collect( Collectors.toList() );
+		List< ValueVector > concatenationList =
+			existenceGroups.stream().map( matchExpression -> {
+				boolean[] bitMask = matchExpression.applyOn( dataElements );
+				List< Value > dataList = IntStream.range( 0, bitMask.length )
+						.filter( i -> bitMask[ i ] )
+						.mapToObj( dataElements::get )
+						.collect( Collectors.toList() );
+				return group( dataList, bitMask, groupingList, aggregationList );
+			}).collect( Collectors.toList() );
 	}
 
-	public static ProjectExpressionChain getValueToPathProjection(
-			Integer[] H,
-			ArrayList< ValueVector > values,
-			List< GroupPair > groupingList
-	) throws FaultException {
-		int valuesIndex = 0;
-		ProjectExpressionChain returnProjectionChain = new ProjectExpressionChain();
-		for ( Integer h : H ) {
-			returnProjectionChain.addExpression(
-					new ValueToPathProjectExpression(
-							groupingList.get( h ).getDstPath(),
-							new ConstantValueDefinition( values.get( valuesIndex++ ) )
-			));
-		}
-		return returnProjectionChain;
+	private static ValueVector group( List< Value > dataList, boolean[] combination, List< GroupPair > groupingList, List< GroupPair > aggregationList ){
+		System.out.println( Arrays.toString( combination ) );
+		return null;
 	}
-	
-	public static Map< Integer, ArrayList< ValueVector > > getValues(
-			Integer[] H,
-			List<GroupPair> groupingList,
-			ValueVector elements) {
-		Map< Integer, ArrayList< ValueVector > > returnValues = new HashMap<>();
-		for ( int h : H ) {
-			for ( Value element : elements ) {
-				groupingList.get( h )
-						.getSrcPath() // s_h
-						.apply( element ) // [[ s_h ]]^t
-						.ifPresent( ( vector ) -> { // [[ s_h ]]^t \neq \alpha
-							returnValues.putIfAbsent( h, new ArrayList<>() );
-							if ( !returnValues.get( h )
-									.stream()
-									.anyMatch( ( present ) -> 
-											joliex.queryengine.common.Utils.checkVectorEquality( present, vector )
-									)
-							){
-								returnValues.get( h ).add( vector );
-							}
-//					for ( Value dataValue : vector ) {
-//						returnValues.putIfAbsent( h, new ArrayList<>() );
-//						if( !returnValues.get( h )
-//								.stream()
-//								.anyMatch( ( present ) -> 
-//										joliex.queryengine.common.Utils.checkTreeEquality( present,  dataValue ) ) // {{ a }}, unique values
-//						){
-//							returnValues.get( h ).add( dataValue );
-//						}
-//					}
-				});
-			}
+
+	private static List< List< Boolean > > getCombinations( int size ) {
+		if( size > 1 ){
+			List< List< Boolean > > subCombinations = getCombinations( size - 1 );
+			return subCombinations.stream()
+					.flatMap( e -> Stream.of(
+								Stream.concat( Stream.of( true ), e.stream() ).collect( Collectors.toList() ),
+								Stream.concat( Stream.of( false ), e.stream() ).collect( Collectors.toList() )
+							) )
+					.collect( Collectors.toList() );
 		}
-		return returnValues;
-	}
-	
-	public static ArrayList<Integer[]> getPowerSet( List<GroupPair> groupList ) {
-		ArrayList<Integer[]> returnList = new ArrayList();
-		int powerSetSize =  (int) Math.pow( groupList.size(), 2 )-1;
-		for ( int i = 0; i < powerSetSize; i++ ) {
-			returnList.add( getIndexes( i, groupList.size() ) );
-		}
-		return returnList;
-	}
-	
-	private static Integer[] getIndexes( int i, int size ){
-		ArrayList<Integer> returnArray = new ArrayList();
-		for ( int j = 0; j < size; j++ ) {
-			if( i > 0 ){
-				if( i%2 == 1 ) 
-					returnArray.add( j );
-				i = i/2;
-			} else {
-				break;
-			}
-		}
-		return returnArray.toArray( new Integer[ returnArray.size() ] );
-	}
-	
-	public static ArrayList< ArrayList < ValueVector > > getCombinations( Map< Integer, ArrayList< ValueVector > > values ){
-		Optional<Integer> index = values.keySet().stream().max( Integer::max );
-		if( index.isPresent() ){
-			ArrayList< ValueVector > currentValues = values.remove( index.get() );
-			ArrayList< ArrayList< ValueVector > > combinedList = getCombinations( values );
-			ArrayList< ArrayList< ValueVector > > returnList = new ArrayList();
-				for ( ArrayList<ValueVector> arrayList : combinedList ) {
-					for ( ValueVector currentValue : currentValues ) { // TODO select only unique values
-						ArrayList< ValueVector > thisList = new ArrayList();
-						thisList.add( currentValue );
-						for ( ValueVector vector : arrayList ) {
-							thisList.add( vector );
-						}
-						returnList.add( thisList );
-					}
-				}
-				return returnList;
+		if( size > 0 ){
+			return List.of( Collections.singletonList( true ), Collections.singletonList( false ) );
 		} else {
-			ArrayList< ArrayList < ValueVector > > returnList = new ArrayList();
-			returnList.add( new ArrayList() );
-			return returnList;
+			return Collections.emptyList();
 		}
 	}
-	
+
+	private static MatchExpression getMatchExistenceExpression( List< Boolean > combination, List< GroupPair > groupPairList ){
+		MatchExpression currentExpression = new ExistsExpression( groupPairList.get( 0 ).s );
+		currentExpression = combination.get( 0 ) ? currentExpression : new NotExpression( currentExpression );
+		if( combination.size() > 1 ){
+			return BinaryExpression.AndExpression(
+					currentExpression,
+					getMatchExistenceExpression( combination.subList( 1, combination.size() - 1 ), groupPairList.subList( 1, combination.size() - 1 ) )
+			);
+		}
+		if( combination.size() > 0 ){
+			return currentExpression;
+		} else {
+			throw new RuntimeException( "getMatchExistenceExpression received a combination of size 0" ); //todo: refine this error into a Fault
+		}
+	}
+
 }
