@@ -37,6 +37,14 @@ define match_bool_bis
   matchRequest.query.not = true
 }
 
+define match_bool_opp
+{
+  /* Testing corner stone expression */
+  matchRequest.data << bios;
+  matchRequest.query = true
+}
+
+
 define match_equal_value
 {
   /* Testing structural equality with array of trees */

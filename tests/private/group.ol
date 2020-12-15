@@ -1,15 +1,15 @@
 define group
 {
   with( groupRequest ){
-    .data << db.bios;
+    .data << bios;
     with( .query ){
       .aggregate << {
         .dstPath = "name.first",
-        .srcPath = "name.second"
+        .srcPath = "name.first"
       };
       .groupBy << {
         .dstPath = "name.first",
-        .srcPath = "name.second"
+        .srcPath = "name.first"
       }
     }
   }
