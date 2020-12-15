@@ -1,233 +1,78 @@
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import joliex.queryengine.common.Utils;
+import joliex.queryengine.lookup.LookupQuery;
+import joliex.queryengine.match.MatchQuery;
 import org.junit.jupiter.api.Test;
 
+import java.io.FileReader;
+
+import static jolie.js.JsUtils.parseJsonIntoValue;
+
 public class MatchQueryTest {
-    //TODO (These tests are deprecated and need to be rewritten)
+    static final String PATH_TO_RESOURCES = "src/test/resources/match";
+    static final String QUERY = "query";
+    static final String RESULT = "result";
 
-    /*private Value data;
-
-    @org.junit.jupiter.api.BeforeEach
-    void setUp() {
-        Value data = Value.create();
-        Value awards = data.getNewChild("awards");
-        awards.getNewChild("award").setValue("Rosing Prize");
-        awards.getNewChild("year").setValue("1999");
-
-        this.data = data;
+    @Test
+    public void testEmptyDestPath() throws Exception {
+        final String fileName = "lookup_empty_dest_path.json";
+        test(fileName);
     }
 
     @Test
-    void testExists() {
-        Value query = Value.create();
-        query.getNewChild(exists).setValue("awards.award");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        System.out.println(data.toPrettyString());
-        assert  (matchExpression.interpret(data).isPresent());
+    public void testEmptyLeftPath() throws Exception {
+        final String fileName = "lookup_empty_left_path.json";
+        test(fileName);
     }
 
     @Test
-    void testNotExists1() {
-        Value query = Value.create();
-        query.getNewChild(exists).setValue("awards.award.oops");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        System.out.println(data.toPrettyString());
-        assert  (!matchExpression.interpret(data).isPresent());
+    public void testEmptyRightPath() throws Exception {
+        final String fileName = "lookup_empty_right_path.json";
+        test(fileName);
     }
 
     @Test
-    void testNotExists2() {
-        Value query = Value.create();
-        query.getNewChild(exists).setValue("awards.oops");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (!matchExpression.interpret(data).isPresent());
+    public void testEmptyLeftData() throws Exception {
+        final String fileName = "lookup_empty_left_array.json";
+        test(fileName);
     }
 
     @Test
-    void testExistsIncompletePath() {
-        Value query = Value.create();
-        query.getNewChild(exists).setValue("awards");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
+    public void testEmptyRightData() throws Exception {
+        final String fileName = "lookup_empty_right_array.json";
+        test(fileName);
     }
 
     @Test
-    void testEqual() {
-        Value query = Value.create();
-        Value eql = query.getNewChild(equal);
-        eql.getNewChild(path).setValue("awards.award");
-        eql.getNewChild(val).setValue("Rosing Prize");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (matchExpression.interpret(data).isPresent());
+    public void testSimplePath() throws Exception {
+        final String fileName = "lookup_simple_path.json";
+        test(fileName);
     }
 
     @Test
-    void testNotEqual() {
-        Value query = Value.create();
-        Value eql = query.getNewChild(equal);
-        eql.getNewChild(path).setValue("awards.award");
-        eql.getNewChild(val).setValue("Turing Award");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (!matchExpression.interpret(data).isPresent());
+    public void testCompoundPath() throws Exception {
+        final String fileName = "lookup_compound_path.json";
+        test(fileName);
     }
 
-    @Test
-    void testOr() {
-        Value query = Value.create();
-        Value ore = query.getNewChild(or);
-        Value eql = ore.getNewChild(left).getNewChild(equal);
-        eql.getNewChild(path).setValue("awards.award");
-        eql.getNewChild(val).setValue("Rosing Prize");
-        ore.getNewChild(right).getNewChild(exists).setValue("awards.yeah");
 
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (matchExpression.interpret(data).isPresent());
+    private void test(String fileName) throws Exception {
+        Value value = Value.create();
+        parseJsonIntoValue(new FileReader(String.format("%s/%s", PATH_TO_RESOURCES, fileName)), value, false);
+
+
+        Value matchRequest = value.getChildren(QUERY).first();
+
+        ValueVector actualResult = MatchQuery.match(matchRequest).getChildren(RESULT);
+        ValueVector expectedResult = value.getChildren(RESULT);
+
+        String assertionMessage = String.format("Error in test %s: " +
+                        "Actual result does not match the expected result.\n" +
+                        "Expected: %s  \n" +
+                        "Actual: %s  \n",
+                fileName, Utils.valueToPrettyString(expectedResult.first()), Utils.valueToPrettyString(actualResult.first()));
+
+        assert (Utils.checkVectorEquality(actualResult, expectedResult)) : assertionMessage;
     }
-
-    @Test
-    void testOrNegative() {
-        Value query = Value.create();
-        Value ore = query.getNewChild(or);
-        Value eql = ore.getNewChild(left).getNewChild(equal);
-        eql.getNewChild(path).setValue("awards.award");
-        eql.getNewChild(val).setValue("Turing award");
-        ore.getNewChild(right).getNewChild(exists).setValue("awards.yeah");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (!matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testAnd() {
-        Value query = Value.create();
-        Value ore = query.getNewChild(and);
-        Value eql = ore.getNewChild(left).getNewChild(equal);
-        eql.getNewChild(path).setValue("awards.award");
-        eql.getNewChild(val).setValue("Rosing Prize");
-        ore.getNewChild(right).getNewChild(exists).setValue("awards.year");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testAndNegative() {
-        Value query = Value.create();
-        Value ore = query.getNewChild(and);
-        Value eql = ore.getNewChild(left).getNewChild(equal);
-        eql.getNewChild(path).setValue("awards.award");
-        eql.getNewChild(val).setValue("Turing award");
-        ore.getNewChild(right).getNewChild(exists).setValue("awards.year");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (!matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testNot() {
-        Value query = Value.create();
-        Value note = query.getNewChild(not);
-        Value ore = note.getNewChild(and);
-        Value eql = ore.getNewChild(left).getNewChild(equal);
-        eql.getNewChild(path).setValue("awards.award");
-        eql.getNewChild(val).setValue("Turing award");
-        ore.getNewChild(right).getNewChild(exists).setValue("awards.year");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testGreaterThenInt() {
-        Value query = Value.create();
-        Value great = query.getNewChild(greaterThen);
-        great.getNewChild(path).setValue("awards.year");
-        great.getNewChild(val).setValue("1950");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testGreaterThenIntNegative() {
-        Value query = Value.create();
-        Value great = query.getNewChild(greaterThen);
-        great.getNewChild(path).setValue("awards.year");
-        great.getNewChild(val).setValue("2050");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (!matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testGreaterThenString() {
-        Value query = Value.create();
-        Value great = query.getNewChild(greaterThen);
-        great.getNewChild(path).setValue("awards.award");
-        great.getNewChild(val).setValue("superprize");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testGreaterThenStringNegative() {
-        Value query = Value.create();
-        Value great = query.getNewChild(greaterThen);
-        great.getNewChild(path).setValue("awards.award");
-        great.getNewChild(val).setValue("IEEE John von Neumann Medal");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (!matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testLowerThenInt() {
-        Value query = Value.create();
-        Value great = query.getNewChild(lowerThen);
-        great.getNewChild(path).setValue("awards.year");
-        great.getNewChild(val).setValue("1950");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (!matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testLowerThenIntNegative() {
-        Value query = Value.create();
-        Value great = query.getNewChild(lowerThen);
-        great.getNewChild(path).setValue("awards.year");
-        great.getNewChild(val).setValue("2050");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testLowerThenString() {
-        Value query = Value.create();
-        Value great = query.getNewChild(lowerThen);
-        great.getNewChild(path).setValue("awards.award");
-        great.getNewChild(val).setValue("superprize");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (!matchExpression.interpret(data).isPresent());
-    }
-
-    @Test
-    void testLowerThenStringNegative() {
-        Value query = Value.create();
-        Value great = query.getNewChild(lowerThen);
-        great.getNewChild(path).setValue("awards.award");
-        great.getNewChild(val).setValue("IEEE John von Neumann Medal");
-
-        joliex.queryengine.match.MatchExpression matchExpression = joliex.queryengine.match.MatchQuery.createMatchExpression(query);
-        assert  (matchExpression.interpret(data).isPresent());
-    }*/
 }
-
-

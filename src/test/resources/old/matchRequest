@@ -1,0 +1,23 @@
+with( matchRequest ){
+    .data << bios;
+    with( .query.and ) {
+      .left.exists = "awards";
+      with( .right.or ) {
+        with( .left ) {
+          .equal << {
+            .path = "name.first",
+            .value = "Kristen"
+          }
+        };
+        with( .right ) {
+          .equal << {
+            .path = "contributions",
+            .value = "Simula"
+          }
+        }
+      }
+    }
+  }
+}
+
+matchGrammar ::= .DATA

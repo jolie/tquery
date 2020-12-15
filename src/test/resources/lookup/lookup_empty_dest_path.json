@@ -1,0 +1,81 @@
+{
+  "operator": ["Lookup"],
+  "test_name": ["Testing empty destination path"],
+  "query": [
+    {
+      "rightData": [
+        {
+          "temperatures": [
+            36,
+            37,
+            36
+          ],
+          "patient_id": [
+            "xxx"
+          ]
+        },
+        {
+          "temperatures": [
+            37,
+            37,
+            37
+          ],
+          "patient_id": [
+            "xxx"
+          ]
+        },
+        {
+          "temperatures": [
+            38,
+            39,
+            36
+          ],
+          "patient_id": [
+            "xxx"
+          ]
+        },
+        {
+          "temperatures": [
+            40,
+            40,
+            40
+          ],
+          "patient": [
+            {
+              "patient_id": "xxx",
+              "device": "j7Rg&6"
+            }
+          ]
+        }
+      ],
+      "leftData": [
+        {
+          "quality":
+          [
+            "good",
+            "good"
+          ],
+          "patient_id":
+          [
+            "xxx"
+          ]
+        },
+        {
+          "quality":
+          [
+            "poor",
+            "good"
+          ],
+          "patient_id":
+          [
+            "xxx"
+          ]
+        }
+      ],
+      "rightPath": ["quality"],
+      "leftPath": ["quality"],
+      "dstPath": []
+    }
+  ],
+  "result": []
+}

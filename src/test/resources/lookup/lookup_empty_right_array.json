@@ -1,0 +1,60 @@
+{
+  "operator": ["Lookup"],
+  "test_name": ["Testing empty right array"],
+  "query": [
+    {
+      "rightData": [],
+      "leftData": [
+        {
+          "quality":
+          [
+            "good",
+            "good"
+          ],
+          "patient_id":
+          [
+            "xxx"
+          ]
+        },
+        {
+          "quality":
+          [
+            "poor",
+            "good"
+          ],
+          "patient_id":
+          [
+            "xxx"
+          ]
+        }
+      ],
+      "rightPath": ["quality"],
+      "leftPath": ["quality"],
+      "dstPath": ["temps"]
+    }
+  ],
+  "result": [
+    {
+      "quality":
+      [
+        "good",
+        "good"
+      ],
+      "patient_id":
+      [
+        "xxx"
+      ]
+    },
+    {
+      "quality":
+      [
+        "poor",
+        "good"
+      ],
+      "patient_id":
+      [
+        "xxx"
+      ]
+    }
+  ]
+}
