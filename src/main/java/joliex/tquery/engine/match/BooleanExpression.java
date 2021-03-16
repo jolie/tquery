@@ -21,7 +21,7 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.match;
+package joliex.tquery.engine.match;
 
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;

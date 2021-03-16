@@ -21,11 +21,11 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.tquery.engine;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.unwind.UnwindQuery;
+import joliex.tquery.engine.unwind.UnwindQuery;
 
 public final class UnwindService {
 

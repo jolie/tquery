@@ -6,3 +6,4 @@ java/nbproject/*
 .idea/*
 build/*
 nbproject/*
+tests/lib/tquery.jar

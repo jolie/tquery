@@ -21,11 +21,11 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project.valuedefinition;
+package joliex.tquery.engine.project.valuedefinition;
 
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.match.MatchExpression;
+import joliex.tquery.engine.match.MatchExpression;
 
 public class TernaryValueDefinition implements ValueDefinition {
 

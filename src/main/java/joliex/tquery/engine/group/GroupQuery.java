@@ -1,14 +1,15 @@
-package joliex.queryengine.group;
+package joliex.tquery.engine.group;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.common.Path;
-import joliex.queryengine.common.TQueryExpression;
-import joliex.queryengine.match.*;
-import joliex.queryengine.project.ProjectExpressionChain;
-import joliex.queryengine.project.ValueToPathProjectExpression;
-import joliex.queryengine.project.valuedefinition.ConstantValueDefinition;
+import joliex.tquery.engine.common.Path;
+import joliex.tquery.engine.common.TQueryExpression;
+import joliex.tquery.engine.match.*;
+import joliex.tquery.engine.common.Utils;
+import joliex.tquery.engine.project.ProjectExpressionChain;
+import joliex.tquery.engine.project.ValueToPathProjectExpression;
+import joliex.tquery.engine.project.valuedefinition.ConstantValueDefinition;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,7 +75,7 @@ public final class GroupQuery {
 			if( combination.stream().anyMatch( i -> i ) ){
 				List< Path > paths = IntStream.range( 0, combination.size() ).filter( combination::get ).mapToObj( i -> groupingList.get( i ).srcPath() ).collect( Collectors.toList() );
 				boolean[] bitMask = getMatchGroupingExpression( paths, dataList.get( 0 ) )
-						.applyOn( joliex.queryengine.common.Utils.listToValueVector( dataList ) );
+						.applyOn( Utils.listToValueVector( dataList ) );
 				List< Value > current = new ArrayList<>();
 				List< Value > residuals = new ArrayList<>();
 				IntStream.range( 0, bitMask.length ).forEach( i -> {
@@ -220,7 +221,7 @@ public final class GroupQuery {
 		}
 
 		public boolean isDistinct( ValueVector element ) {
-			if( seen.stream().anyMatch( v -> joliex.queryengine.common.Utils.checkVectorEquality( v, element ) ) ){
+			if( seen.stream().anyMatch( v -> Utils.checkVectorEquality( v, element ) ) ){
 				return false;
 			} else{
 				seen.add( element );

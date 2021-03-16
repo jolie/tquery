@@ -21,12 +21,11 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine;
+package joliex.tquery.engine;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import joliex.queryengine.lookup.LookupQuery;
-import joliex.queryengine.match.MatchQuery;
+import joliex.tquery.engine.lookup.LookupQuery;
 
 public class LookupService {
 

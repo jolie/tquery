@@ -1,7 +1,7 @@
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.common.Utils;
-import joliex.queryengine.lookup.LookupQuery;
+import joliex.tquery.engine.common.Utils;
+import joliex.tquery.engine.lookup.LookupQuery;
 import org.junit.jupiter.api.Test;
 import java.io.FileReader;
 

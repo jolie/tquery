@@ -21,12 +21,12 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project;
+package joliex.tquery.engine.project;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.common.TQueryExpression;
+import joliex.tquery.engine.common.TQueryExpression;
 
 public class ProjectQuery {
 

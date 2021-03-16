@@ -24,10 +24,9 @@
 from console import Console
 from file import File
 from string_utils import StringUtils
-from "./packages/tquery/tquery" import TQuery
+from .packages.tquery.tquery import TQuery
 
 include "private/match.ol"
-
 
 service main()
 { 
@@ -107,11 +106,6 @@ service main()
       println@Console( t )();
       undef( matchRequest )
     }
-
-
-
-
-      println@Console( "Hello, world!" )()
     }
 
 }

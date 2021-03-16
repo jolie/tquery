@@ -115,7 +115,7 @@ service TQuery {
   }  
 
   foreign java {
-    class: "joliex.queryengine.TQueryService"
+    class: "joliex.tquery.engine.TQueryService"
   }
 }
 

@@ -21,28 +21,21 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.group;
+package joliex.tquery.engine.group;
 
 import jolie.js.JsUtils;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
-import jolie.util.Pair;
-import joliex.queryengine.common.Path;
-import joliex.queryengine.match.*;
-import joliex.queryengine.project.ProjectExpressionChain;
-import joliex.queryengine.project.ValueToPathProjectExpression;
-import joliex.queryengine.project.valuedefinition.ConstantValueDefinition;
+import joliex.tquery.engine.common.Path;
+import joliex.tquery.engine.match.*;
+import joliex.tquery.engine.project.ProjectExpressionChain;
+import joliex.tquery.engine.project.ValueToPathProjectExpression;
+import joliex.tquery.engine.project.valuedefinition.ConstantValueDefinition;
 
-import javax.management.RuntimeErrorException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -75,7 +68,7 @@ public class Utils {
 		Set< ValueVector > seen;
 		DistinctFilter(){ seen = new HashSet<>(); }
 		public boolean isDistinct( ValueVector element ) {
-			if ( seen.stream().anyMatch( v -> joliex.queryengine.common.Utils.checkVectorEquality( v, element ) ) ){
+			if ( seen.stream().anyMatch( v -> joliex.tquery.engine.common.Utils.checkVectorEquality( v, element ) ) ){
 				return false;
 			} else {
 				seen.add( element );
@@ -123,7 +116,7 @@ public class Utils {
 						.collect( Collectors.toList() );
 				return group( dataList, combinations.get( existenceGroups.indexOf( matchExpression ) ), groupingList, aggregationList );
 			}).collect( Collectors.toList() );
-		concatenationList.forEach( l -> l.forEach( e -> System.out.println( joliex.queryengine.common.Utils.valueToPrettyString( e ) ) ) );
+		concatenationList.forEach( l -> l.forEach( e -> System.out.println( joliex.tquery.engine.common.Utils.valueToPrettyString( e ) ) ) );
 	}
 
 	private static List< Value > group( List< Value > dataList, List< Boolean > combination, List< GroupPair > groupingList, List< GroupPair > aggregationList ){
@@ -132,7 +125,7 @@ public class Utils {
 			if( combination.stream().anyMatch( i -> i ) ){
 				List< Path > paths = IntStream.range( 0, combination.size() ).filter( combination::get ).mapToObj( i -> groupingList.get( i ).srcPath() ).collect( Collectors.toList() );
 				boolean[] bitMask = getMatchGroupingExpression( paths, dataList.get( 0 ) )
-						.applyOn( joliex.queryengine.common.Utils.listToValueVector( dataList ) );
+						.applyOn( joliex.tquery.engine.common.Utils.listToValueVector( dataList ) );
 				List< Value > current = new ArrayList<>();
 				List< Value > residuals = new ArrayList<>();
 				IntStream.range( 0, bitMask.length ).forEach( i -> {

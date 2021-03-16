@@ -1,10 +1,5 @@
 package old;
 
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import joliex.queryengine.unwind.UnwindQuery;
-import org.junit.jupiter.api.Test;
-
 class UnwindQueryTest {
     //TODO (These tests are deprecated and need to be rewritten)
 

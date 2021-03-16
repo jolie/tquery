@@ -21,11 +21,11 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.unwind;
+package joliex.tquery.engine.unwind;
 
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.common.Path;
+import joliex.tquery.engine.common.Path;
 
 class UnwindExpression {
 

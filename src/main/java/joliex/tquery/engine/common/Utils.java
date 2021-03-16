@@ -21,7 +21,7 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.common;
+package joliex.tquery.engine.common;
 
 import jolie.runtime.*;
 

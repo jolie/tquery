@@ -21,13 +21,13 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.queryengine.project.valuedefinition;
+package joliex.tquery.engine.project.valuedefinition;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.queryengine.common.Path;
-import joliex.queryengine.common.Utils;
+import joliex.tquery.engine.common.Path;
+import joliex.tquery.engine.common.Utils;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
