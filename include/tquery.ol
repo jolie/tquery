@@ -108,10 +108,14 @@ interface TQueryInterface {
   lookup  ( LookupRequest     )( ResponseType ) throws MalformedQueryExpression( string )
 }
 
-outputPort TQuery {
-  Interfaces: TQueryInterface
+service TQuery {
+  inputPort IP {
+    location: "local"
+    interfaces: TQueryInterface
+  }  
+
+  foreign java {
+    class: "joliex.queryengine.TQueryService"
+  }
 }
 
-embedded {
-  Java: "joliex.tquery.engine.TQueryService" in TQuery
-}
