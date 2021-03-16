@@ -113,5 +113,5 @@ outputPort TQuery {
 }
 
 embedded {
-  Java: "joliex.queryengine.TQueryService" in TQuery
+  Java: "joliex.tquery.engine.TQueryService" in TQuery
 }
