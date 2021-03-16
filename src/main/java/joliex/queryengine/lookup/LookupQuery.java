@@ -23,7 +23,7 @@ public final class LookupQuery {
     }
 
 	public static Value lookup( Value lookupRequest ) throws FaultException {
-        ValueVector leftData = lookupRequest.getChildren(RequestType.LEFT_DATA);
+    	ValueVector leftData = lookupRequest.getChildren(RequestType.LEFT_DATA);
         ValueVector rightData = lookupRequest.getChildren(RequestType.RIGHT_DATA);
 
         Value leftPathValue = lookupRequest.getFirstChild(RequestType.LEFT_PATH);
@@ -31,9 +31,26 @@ public final class LookupQuery {
         Value dstPath = lookupRequest.getFirstChild(RequestType.DST_PATH);
 
         ValueVector result = ValueVector.create();
+		Path leftPath;
+		Path rightPath;
 
-        Path leftPath = Path.parsePath(leftPathValue.strValue());
-        Path rightPath = Path.parsePath(rightPathValue.strValue());
+        try {
+			leftPath = Path.parsePath(leftPathValue.strValue());
+		} catch (IllegalArgumentException e){
+			throw new FaultException( "LookupQuerySyntaxException", "Could not parse left path value" + Utils.valueToPrettyString( leftPathValue ));
+		}
+
+		try {
+			rightPath = Path.parsePath(rightPathValue.strValue());
+		} catch (IllegalArgumentException e){
+			throw new FaultException( "LookupQuerySyntaxException", "Could not parse right path value" + Utils.valueToPrettyString( rightPathValue ));
+		}
+
+		try {
+			Path.parsePath(dstPath.strValue());
+		} catch (IllegalArgumentException e){
+			throw new FaultException( "LookupQuerySyntaxException", "Could not parse destination path " + Utils.valueToPrettyString( dstPath ));
+		}
 
         for (Value leftValue : leftData){
 			ValueVector responseVector = ValueVector.create();
