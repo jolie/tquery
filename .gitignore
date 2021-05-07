@@ -7,3 +7,5 @@ java/nbproject/*
 build/*
 nbproject/*
 tests/lib/tquery.jar
+dist/*
+target/*
