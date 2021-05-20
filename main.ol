@@ -78,8 +78,8 @@ type GroupRequest       : void {
 }
 
 type GroupExp           : void {
-  .aggregate[1,*]       : AggregateDefinition
-  .groupBy[1,*]         : GroupDefinition
+  .aggregate*           : AggregateDefinition
+  .groupBy*             : GroupDefinition
 }
 
 type GroupDefinition    : void {
@@ -90,7 +90,7 @@ type GroupDefinition    : void {
 type AggregateDefinition: void {
   .dstPath              : Path
   .srcPath              : Path
-  .distinct?						: bool  //<< default is false
+  .distinct?            : bool  //<< default is false
 }
 
 type LookupRequest      : void {
@@ -102,7 +102,7 @@ type LookupRequest      : void {
 }
 
 type ResponseType       : void {
-  .result*               : undefined
+  .result*              : undefined
 }
 
 interface TQueryInterface {
