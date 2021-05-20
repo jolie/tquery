@@ -1,4 +1,4 @@
-type Path               : string( regex( "(\w+\.)*(\w+)" ) )
+type Path               : string( regex( "(\\w+\\.)*(\\w+)" ) )
 
 type MatchRequestType   : void {
   .data*                : undefined
