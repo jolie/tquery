@@ -8,15 +8,16 @@ repositories {
     mavenCentral()
 }
 
-def libDir = layout.projectDirectory.dir( "lib" ).asFile
+version "0.2.0"
+def libDir = file( "lib" )
+def releaseDir = file( "release" )
 
 dependencies {
     implementation fileTree( dir: libDir, include: '*.jar' )
 
     implementation 'org.apache.clerezza.ext:org.json.simple:0.4'
-    testImplementation "org.junit.jupiter:junit-jupiter-engine:+"
-    testImplementation "org.junit.jupiter:junit-jupiter-migrationsupport:+"
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:+'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
+    testImplementation 'org.junit.platform:junit-platform-runner:1.2.0'
 }
 
 sourceSets {
@@ -24,9 +25,9 @@ sourceSets {
         libDir.mkdir()
         download {
             src([
-                    'https://repo1.maven.org/maven2/org/jolie-lang/jolie/1.10.0/jolie-1.10.0.jar',
-                    "https://repo1.maven.org/maven2/org/jolie-lang/libjolie/1.10.0/libjolie-1.10.0.jar",
-                    "https://repo1.maven.org/maven2/org/jolie-lang/jolie-js/1.10.0/jolie-js-1.10.0.jar"
+                "https://repo1.maven.org/maven2/org/jolie-lang/jolie/1.10.0/jolie-1.10.0.jar",
+                "https://repo1.maven.org/maven2/org/jolie-lang/libjolie/1.10.0/libjolie-1.10.0.jar",
+                "https://repo1.maven.org/maven2/org/jolie-lang/jolie-js/1.10.0/jolie-js-1.10.0.jar"
             ])
             dest libDir
             overwrite false
@@ -34,9 +35,9 @@ sourceSets {
     }
 }
 
-test {
-    useJUnitPlatform()
-}
+//test {
+//    useJUnitPlatform()
+//}
 
 jar {
     //from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -48,6 +49,35 @@ jar {
     }
 }
 
-clean.doFirst {
-    delete libDir
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task makeRelease() {
+    tasks.compileJava.mustRunAfter( clean )
+    dependsOn( clean )
+    dependsOn( build )
+    doFirst {
+        delete releaseDir
+    }
+    doLast{
+        copy {
+            from( projectDir.toPath().resolve( "release_template" ) ){
+                include "*"
+                filter( ReplaceTokens, tokens: [ VERSION: version ] )
+            }
+            into releaseDir
+        }
+        copy {
+            from( buildDir.toPath().resolve( "libs" ) ){
+                include "tquery*.jar"
+            }
+            into releaseDir.toPath().resolve( "lib" )
+        }
+        copy {
+            from( projectDir ){
+                include "main.ol"
+            }
+            into releaseDir
+        }
+    }
+
 }

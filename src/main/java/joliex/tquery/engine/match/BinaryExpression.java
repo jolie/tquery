@@ -32,7 +32,7 @@ public class BinaryExpression implements MatchExpression {
 
 	final private Function<Value, Boolean> assembleResult;
 	
-	private BinaryExpression( Function assembleResult ){
+	private BinaryExpression( Function< Value, Boolean > assembleResult ){
 		this.assembleResult = assembleResult;
 	}
 	

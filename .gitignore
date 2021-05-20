@@ -10,3 +10,4 @@ tests/lib/tquery.jar
 dist/*
 target/*
 lib/*
+release/*
