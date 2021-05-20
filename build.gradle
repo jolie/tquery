@@ -1,21 +1,37 @@
 plugins {
     id 'java'
     id 'java-library'
+    id 'de.undercouch.download' version '4.1.1' // to download the jars from maven central for the moment
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
+def libDir = layout.projectDirectory.dir( "lib" ).asFile
+
 dependencies {
-    compile fileTree(dir: 'lib', include: '*.jar')
+    implementation fileTree( dir: libDir, include: '*.jar' )
 
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:+")
-    testImplementation("org.junit.jupiter:junit-jupiter-migrationsupport:+")
+    implementation 'org.apache.clerezza.ext:org.json.simple:0.4'
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:+"
+    testImplementation "org.junit.jupiter:junit-jupiter-migrationsupport:+"
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:+'
+}
 
-//    testCompile group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.7.0'
-
+sourceSets {
+    doFirst{
+        libDir.mkdir()
+        download {
+            src([
+                    'https://repo1.maven.org/maven2/org/jolie-lang/jolie/1.10.0/jolie-1.10.0.jar',
+                    "https://repo1.maven.org/maven2/org/jolie-lang/libjolie/1.10.0/libjolie-1.10.0.jar",
+                    "https://repo1.maven.org/maven2/org/jolie-lang/jolie-js/1.10.0/jolie-js-1.10.0.jar"
+            ])
+            dest libDir
+            overwrite false
+        }
+    }
 }
 
 test {
@@ -30,4 +46,8 @@ jar {
     manifest {
         attributes 'Main-Class': 'TQueryService'
     }
+}
+
+clean.doFirst {
+    delete libDir
 }

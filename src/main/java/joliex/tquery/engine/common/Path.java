@@ -24,13 +24,12 @@
 package joliex.tquery.engine.common;
 
 import java.util.Optional;
-import jolie.Jolie;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 /**
- * This class implements {@link Path}s in {@link Jolie}. We use {@link Path}s in
- * the TQuery framework for ephemeral data handling over {@link Jolie} trees.
+ * This class implements {@link Path}s. We use {@link Path}s in
+ * the TQuery framework for ephemeral data handling over trees.
  *
  */
 public class Path {

@@ -1,4 +1,4 @@
-type Path               : string
+type Path               : string( regex( "(\w+\.)*(\w+)" ) )
 
 type MatchRequestType   : void {
   .data*                : undefined
@@ -65,10 +65,10 @@ type ValueMatch         : void {
 }
 
 type ValueTernary         : void {
-  .ternary:             void {
-    .condition            : MatchExp
-    .ifTrue[1,*]          : Value
-    .ifFalse[1,*]         : Value  
+  .ternary                : void {
+		.condition            : MatchExp
+		.ifTrue[1,*]          : Value
+		.ifFalse[1,*]         : Value
   }
 }
 
@@ -78,13 +78,19 @@ type GroupRequest       : void {
 }
 
 type GroupExp           : void {
-  .aggregate[1,*]       : GroupDefinition
+  .aggregate[1,*]       : AggregateDefinition
   .groupBy[1,*]         : GroupDefinition
 }
 
 type GroupDefinition    : void {
   .dstPath              : Path
   .srcPath              : Path
+}
+
+type AggregateDefinition: void {
+  .dstPath              : Path
+  .srcPath              : Path
+  .distinct?						: bool  //<< default is false
 }
 
 type LookupRequest      : void {
@@ -118,4 +124,3 @@ service TQuery {
     class: "joliex.tquery.engine.TQueryService"
   }
 }
-

@@ -9,3 +9,5 @@ nbproject/*
 tests/lib/tquery.jar
 dist/*
 target/*
+lib/*
+.idea/gradle.xml
