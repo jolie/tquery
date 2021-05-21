@@ -8,7 +8,7 @@ repositories {
     mavenCentral()
 }
 
-version "0.2.0"
+version "0.2.1"
 def libDir = file( "lib" )
 def releaseDir = file( "release" )
 
@@ -75,6 +75,8 @@ task makeRelease() {
         copy {
             from( projectDir ){
                 include "main.ol"
+                include "README.md"
+                include "tquery_logo.png"
             }
             into releaseDir
         }
