@@ -2,14 +2,17 @@
    "name": "@jolie/tquery",
    "description": "A query framework for the Jolie language",
    "collaborators": [
-      "Saverio Giallorenzo", 
-      "Fabrizio Montesi", 
-      "Larisa Safina", 
+      "Saverio Giallorenzo",
+      "Fabrizio Montesi",
+      "Larisa Safina",
       "Stefano Pio Zingaro"
    ],
    "version": "@VERSION@",
    "license": "LGPL 2.1",
-   "keywords": [ "microservices", "jolie" ],
+   "keywords": [
+      "microservices",
+      "jolie"
+   ],
    "scripts": {
       "jolive": "npx nodemon --exec jolie ./server.ol",
       "clean": "rm ./hs_err_pid*"

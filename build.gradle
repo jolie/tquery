@@ -8,7 +8,7 @@ repositories {
     mavenCentral()
 }
 
-version "0.2.1"
+version "0.2.2"
 def libDir = file( "lib" )
 def releaseDir = file( "release" )
 
@@ -55,31 +55,26 @@ task makeRelease() {
     tasks.compileJava.mustRunAfter( clean )
     dependsOn( clean )
     dependsOn( build )
-    doFirst {
-        delete releaseDir
-    }
     doLast{
-        copy {
-            from( projectDir.toPath().resolve( "release_template" ) ){
-                include "*"
-                filter( ReplaceTokens, tokens: [ VERSION: version ] )
-            }
-            into releaseDir
-        }
         copy {
             from( buildDir.toPath().resolve( "libs" ) ){
                 include "tquery*.jar"
             }
-            into releaseDir.toPath().resolve( "lib" )
+            into releaseDir.toPath().resolve( "dist" )
         }
         copy {
             from( projectDir ){
+                include "jpm.json"
                 include "main.ol"
                 include "README.md"
                 include "tquery_logo.png"
+                filter( ReplaceTokens, tokens: [ VERSION: version ] )
             }
             into releaseDir
         }
     }
+}
 
+clean.doFirst{
+    delete releaseDir
 }
