@@ -8,13 +8,12 @@ repositories {
     mavenCentral()
 }
 
-version "0.2.2"
+version "0.2.3"
 def libDir = file( "lib" )
 def releaseDir = file( "release" )
 
 dependencies {
     implementation fileTree( dir: libDir, include: '*.jar' )
-
     implementation 'org.apache.clerezza.ext:org.json.simple:0.4'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
     testImplementation 'org.junit.platform:junit-platform-runner:1.2.0'
@@ -33,6 +32,11 @@ sourceSets {
             overwrite false
         }
     }
+}
+
+compileJava   {
+  sourceCompatibility = '11'
+  targetCompatibility = '11'
 }
 
 //test {
