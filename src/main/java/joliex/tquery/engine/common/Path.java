@@ -63,9 +63,14 @@ public class Path {
      *
      */
     public static Path parsePath( String path ) {
+        path = path.trim();
         int idx = path.indexOf( PATH_SEPARATOR );
-        if(  idx > 0 ){
-            return new Path( path.substring( 0, idx ), Optional.of( parsePath( path.substring( idx + 1 ) ) ) );
+        if( idx > 0 ){
+            try {
+                return new Path( path.substring( 0, idx ), Optional.of( parsePath( path.substring( idx + 1 ) ) ) );
+            } catch ( IllegalArgumentException e ){
+                throw new IllegalArgumentException( "Could not parse path \"" + path + "\"" );
+            }
         } else if ( path.length() > 0 ) {
             return new Path( path, Optional.empty() );
         } else {
