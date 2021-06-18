@@ -1,0 +1,129 @@
+[
+  {
+    "unwindQuery": "M.D.L"
+  }
+,
+  {
+    "projectQuery": [
+      {
+        "value": {
+          "path": "y"
+        },
+        "dstPath": "year"
+      },
+      {
+        "value": {
+          "path": "M.m"
+        },
+        "dstPath": "month"
+      },
+      {
+        "value": {
+          "path": "M.D.d"
+        },
+        "dstPath": "day"
+      },
+      {
+        "value": {
+          "path": "M.D.L.q"
+        },
+        "dstPath": "quality"
+      }
+    ]
+  }
+,
+  {
+    "matchQuery": {
+      "and": {
+        "left": {
+          "equal": {
+            "path": "year",
+            "value": "2020"
+          }
+        },
+        "right": {
+          "and": {
+            "left": {
+              "equal": {
+                "path": "month",
+                "value": "11"
+              }
+            },
+            "right": {
+              "or": {
+                "left": {
+                  "equal": {
+                    "path": "day",
+                    "value": "29"
+                  }
+                },
+                "right": {
+                  "equal": {
+                    "path": "day",
+                    "value": "30"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+,
+  {
+    "groupQuery": {
+      "aggregate": {
+        "srcPath": "quality",
+        "dstPath": "quality"
+      }
+    }
+  }
+,
+  {
+    "projectQuery": [
+      {
+        "value": {
+          "path": "quality"
+        },
+        "dstPath": "quality"
+      },
+      {
+        "value": "12345",
+        "dstPath": "patient_id"
+      }
+    ]
+  }
+,
+  {
+    "lookupQuery": {
+      "rightPath": "patient_id",
+      "rightData": null,
+      "leftPath": "patient_id",
+      "dstPath": "temperatures"
+    }
+  }
+,
+  {
+    "projectQuery": [
+      {
+        "value": {
+          "path": "quality"
+        },
+        "dstPath": "quality"
+      },
+      {
+        "value": {
+          "path": "temperatures.t"
+        },
+        "dstPath": "temperatures"
+      },
+      {
+        "value": {
+          "path": "patient_id"
+        },
+        "dstPath": "patient_id"
+      }
+    ]
+  }
+]

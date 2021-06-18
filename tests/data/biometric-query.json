@@ -1,0 +1,44 @@
+[
+  {
+    "matchQuery": {
+      "or": {
+        "left": {
+          "equal": {
+            "path": "date",
+            "value": "20201127"
+          }
+        },
+        "right": {
+          "equal": {
+            "path": "date",
+            "value": "20201128"
+          }
+        }
+      }
+    }
+  }
+,
+  {
+    "groupQuery": {
+      "aggregate": {
+        "srcPath": "t",
+        "dstPath": "t"
+      }
+    }
+  }
+,
+  {
+    "projectQuery": [
+      {
+        "value": {
+          "path": "t"
+        },
+        "dstPath": "t"
+      },
+      {
+        "value": "12345",
+        "dstPath": "patient_id"
+      }
+    ]
+  }
+]
