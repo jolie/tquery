@@ -1,8 +1,8 @@
 type Path               : string( regex( "[A-Za-z0-9._]*[A-Za-z0-9._]+" ) )
 
-type MatchRequestType   : void {
-  .data*                : undefined
-  .query                : MatchExp
+type MatchRequest       : void {
+  data*                : undefined
+  query                : MatchExp
 }
 
 type MatchExp           : UnaryExp | ORExp | ANDExp | NOTExp
@@ -10,108 +10,133 @@ type MatchExp           : UnaryExp | ORExp | ANDExp | NOTExp
 type UnaryExp           : EQUALExp | EXISTSExp | bool
 
 type EQUALExp           : void {
-  .equal                : void {
-    .path               : Path
-    .value[1,*]         : undefined
+  equal                : void {
+    path               : Path
+    value[1,*]         : undefined
   }
 }
 
 type EXISTSExp          : void {
-  .exists               : Path
+  exists               : Path
 }
 
 type ORExp              : void {
-  .or                   : BinaryExp
+  or                   : BinaryExp
 }
 
 type ANDExp             : void {
-  .and                  : BinaryExp
+  and                  : BinaryExp
 }
 
 type NOTExp             : void {
-  .not                  : MatchExp
+  not                  : MatchExp
 }
 
 type BinaryExp          : void {
-  .left                 : MatchExp
-  .right                : MatchExp
+  left                 : MatchExp
+  right                : MatchExp
 }
 
 type UnwindRequest      : void {
-  .data*                : undefined
-  .query                : Path
+  data*                : undefined
+  query                : Path
 }
 
 type ProjectRequest     : void {
-  .data*                : undefined
-  .query[1,*]           : ProjectionExp
+  data*                : undefined
+  query[1,*]           : ProjectionExp
 }
 
 type ProjectionExp      : Path | ValuesToPathExp
 
 type ValuesToPathExp    : void {
-  .dstPath              : Path
-  .value[1,*]           : Value
+  dstPath              : Path
+  value[1,*]           : Value
 }
 
 type Value              : any | ValuePath | ValueMatch | ValueTernary
 
 type ValuePath          : void {
-  .path                 : Path
+  path                 : Path
 }
 
 type ValueMatch         : void {
-  .match                : MatchExp
+  match                : MatchExp
 }
 
 type ValueTernary         : void {
-  .ternary                : void {
-		.condition            : MatchExp
-		.ifTrue[1,*]          : Value
-		.ifFalse[1,*]         : Value
+  ternary                : void {
+		condition            : MatchExp
+		ifTrue[1,*]          : Value
+		ifFalse[1,*]         : Value
   }
 }
 
 type GroupRequest       : void {
-  .data*                : undefined
-  .query                : GroupExp
+  data*                : undefined
+  query                : GroupExp
 }
 
 type GroupExp           : void {
-  .aggregate*           : AggregateDefinition
-  .groupBy*             : GroupDefinition
+  aggregate*           : AggregateDefinition
+  groupBy*             : GroupDefinition
 }
 
 type GroupDefinition    : void {
-  .dstPath              : Path
-  .srcPath              : Path
+  dstPath              : Path
+  srcPath              : Path
 }
 
 type AggregateDefinition: void {
-  .dstPath              : Path
-  .srcPath              : Path
-  .distinct?            : bool  //<< default is false
+  dstPath              : Path
+  srcPath              : Path
+  distinct?            : bool  //<< default is false
 }
 
 type LookupRequest      : void {
-  .leftData*            : undefined
-  .leftPath             : Path
-  .rightData*           : undefined
-  .rightPath            : Path
-  .dstPath              : Path
+  leftData*            : undefined
+  leftPath             : Path
+  rightData*           : undefined
+  rightPath            : Path
+  dstPath              : Path
 }
 
 type ResponseType       : void {
-  .result*              : undefined
+  result*              : undefined
+}
+
+type PipelineRequest    : void {
+  data*                : undefined
+  pipeline[1,*]        : 
+    void {
+      matchRequest       : MatchRequest
+    } 
+    |
+    void {
+      projectRequest       : ProjectRequest
+    }
+    |
+    void {
+      unwindRequest         : UnwindRequest
+    }
+    |
+    void {
+      groupRequest          : GroupRequest
+    }
+    |
+    void {
+      LookupRequest         : LookupRequest
+    }
 }
 
 interface TQueryInterface {
   RequestResponse :
-  match   ( MatchRequestType  )( ResponseType ) throws MalformedQueryExpression( string ),
+  match   ( MatchRequest  )( ResponseType ) throws MalformedQueryExpression( string ),
   unwind  ( UnwindRequest     )( ResponseType ) throws MalformedQueryExpression( string ),
   project ( ProjectRequest    )( ResponseType ) throws MalformedQueryExpression( string ) MergeValueException( string ),
   group   ( GroupRequest      )( ResponseType ) throws MalformedQueryExpression( string ),
-  lookup  ( LookupRequest     )( ResponseType ) throws MalformedQueryExpression( string )
+  lookup  ( LookupRequest     )( ResponseType ) throws MalformedQueryExpression( string ),
+  pipeline ( PipelineRequest )( ResponseType ) throws MalformedQueryExpression ( string )
 }
 
 service TQuery {

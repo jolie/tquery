@@ -21,36 +21,71 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.tquery.engine;
+package joliex.tquery.engine.pipeline;
 
 import jolie.runtime.FaultException;
-import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import joliex.tquery.engine.common.Path;
+import joliex.tquery.engine.common.TQueryExpression;
+import joliex.tquery.engine.common.Utils;
 
+import java.util.Optional;
 
-public class TQueryService extends JavaService {
+public final class PipelineQuery {
 
-	public Value group( Value request ) throws FaultException {
-		return GroupService.group( request );
+	private static class RequestType {
+
+		private static final String DATA = "data";
+		private static final String PIPELINE = "pipeline";
+
 	}
 
-	public Value lookup( Value request ) throws FaultException {
-		return LookupService.lookup( request );
+	public static Value pipeline( Value pipelineRequest ) throws FaultException {
+
+		ValueVector dataElements = pipelineRequest.getChildren( RequestType.DATA );
+        ValueVector pipeline = pipelineRequest.getChildren( RequestType.PIPELINE );
+		
+
+        for ( Value stage: pipeline ) {
+            
+            if ( stage.hasChildren( 'matchRequest' ) ) {
+
+
+
+            }
+
+            if ( stage.hasChildren( 'projectRequest' ) ) {
+
+                
+
+            }
+
+            if ( stage.hasChildren( 'unwindRequest' ) ) {
+
+                
+
+            }
+
+            if ( stage.hasChildren( 'groupRequest' ) ) {
+
+                
+
+            }
+
+            if ( stage.hasChildren( 'lookupRequest' ) ) {
+
+                
+
+            } else {
+
+                throw new FaultException( "Unrecognized operation " + pipeline.getIndex( stage ) )
+
+            }
+
+        }
+
+		return response;
 	}
 
-	public Value match( Value request ) throws FaultException {
-		return MatchService.match( request );
-	}
-
-	public Value project( Value request ) throws FaultException {
-		return ProjectService.project( request );
-	}
-
-	public Value unwind( Value request ) throws FaultException {
-		return UnwindService.unwind( request );
-	}
-
-	public Value pipeline( Value request ) throws FaultException {
-		return PipelineService.pipeline( request );
-	} 
 }

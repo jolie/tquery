@@ -24,33 +24,13 @@
 package joliex.tquery.engine;
 
 import jolie.runtime.FaultException;
-import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import joliex.tquery.engine.pipeline.PipelineQuery;
 
 
-public class TQueryService extends JavaService {
+public class PipelineService {
 
-	public Value group( Value request ) throws FaultException {
-		return GroupService.group( request );
+	static Value pipeline( Value request ) throws FaultException {
+		return PipelineQuery.pipeline( request );
 	}
-
-	public Value lookup( Value request ) throws FaultException {
-		return LookupService.lookup( request );
-	}
-
-	public Value match( Value request ) throws FaultException {
-		return MatchService.match( request );
-	}
-
-	public Value project( Value request ) throws FaultException {
-		return ProjectService.project( request );
-	}
-
-	public Value unwind( Value request ) throws FaultException {
-		return UnwindService.unwind( request );
-	}
-
-	public Value pipeline( Value request ) throws FaultException {
-		return PipelineService.pipeline( request );
-	} 
 }
