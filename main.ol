@@ -107,25 +107,12 @@ type ResponseType       : void {
 
 type PipelineRequest    : void {
   data*                : undefined
-  pipeline[1,*]        : 
-    void {
-      matchQuery       : MatchExp
-    } 
-    |
-    void {
-      projectQuery       : ProjectExp
-    }
-    |
-    void {
-      unwindQuery         : Path
-    }
-    |
-    void {
-      groupQuery          : GroupExp
-    }
-    |
-    void {
-      lookupQuery         : void {
+  pipeline[1,*]        :
+      void { matchQuery         : MatchExp }
+    | void { projectQuery[1,*]  : ProjectExp }
+    | void { unwindQuery        : Path  }
+    | void { groupQuery         : GroupExp }
+    | void { lookupQuery        : void {
         leftPath             : Path
         rightData*           : undefined
         rightPath            : Path
