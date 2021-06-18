@@ -1,37 +1,24 @@
 plugins {
     id 'java'
     id 'java-library'
-    id 'de.undercouch.download' version '4.1.1' // to download the jars from maven central for the moment
 }
 
 repositories {
     mavenCentral()
 }
 
-version "0.2.3"
+version "0.3.0"
 def libDir = file( "lib" )
 def releaseDir = file( "release" )
 
 dependencies {
-    implementation fileTree( dir: libDir, include: '*.jar' )
     implementation 'org.apache.clerezza.ext:org.json.simple:0.4'
+    implementation "org.jolie-lang:jolie:1.10.4"
+    implementation "org.jolie-lang:libjolie:1.10.4"
+    implementation "org.jolie-lang:jolie-js:1.10.4"
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
     testImplementation 'org.junit.platform:junit-platform-runner:1.2.0'
-}
 
-sourceSets {
-    doFirst{
-        libDir.mkdir()
-        download {
-            src([
-                "https://repo1.maven.org/maven2/org/jolie-lang/jolie/1.10.0/jolie-1.10.0.jar",
-                "https://repo1.maven.org/maven2/org/jolie-lang/libjolie/1.10.0/libjolie-1.10.0.jar",
-                "https://repo1.maven.org/maven2/org/jolie-lang/jolie-js/1.10.0/jolie-js-1.10.0.jar"
-            ])
-            dest libDir
-            overwrite false
-        }
-    }
 }
 
 compileJava   {
