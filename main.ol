@@ -44,10 +44,10 @@ type UnwindRequest      : void {
 
 type ProjectRequest     : void {
   data*                : undefined
-  query[1,*]           : ProjectionExp
+  query[1,*]           : ProjectExp
 }
 
-type ProjectionExp      : Path | ValuesToPathExp
+type ProjectExp      : Path | ValuesToPathExp
 
 type ValuesToPathExp    : void {
   dstPath              : Path
@@ -117,7 +117,7 @@ type PipelineRequest    : void {
     }
     |
     void {
-      unwindQuery         : UnwindExp
+      unwindQuery         : Path
     }
     |
     void {
