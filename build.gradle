@@ -8,7 +8,6 @@ repositories {
 }
 
 version "0.3.0"
-def libDir = file( "lib" )
 def releaseDir = file( "release" )
 
 dependencies {
