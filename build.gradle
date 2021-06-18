@@ -17,7 +17,6 @@ dependencies {
     implementation "org.jolie-lang:jolie-js:1.10.4"
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
     testImplementation 'org.junit.platform:junit-platform-runner:1.2.0'
-
 }
 
 compileJava   {
