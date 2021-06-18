@@ -1,14 +1,11 @@
 import jolie.js.JsUtils;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
-import joliex.tquery.engine.common.Utils;
 import joliex.tquery.engine.unwind.UnwindQuery;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 

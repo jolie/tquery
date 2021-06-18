@@ -26,9 +26,16 @@ package joliex.tquery.engine.pipeline;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import joliex.tquery.engine.LookupService;
+import joliex.tquery.engine.MatchService;
 import joliex.tquery.engine.common.Path;
 import joliex.tquery.engine.common.TQueryExpression;
 import joliex.tquery.engine.common.Utils;
+import joliex.tquery.engine.group.GroupQuery;
+import joliex.tquery.engine.lookup.LookupQuery;
+import joliex.tquery.engine.match.MatchQuery;
+import joliex.tquery.engine.project.ProjectQuery;
+import joliex.tquery.engine.unwind.UnwindQuery;
 
 import java.util.Optional;
 
@@ -39,51 +46,79 @@ public final class PipelineQuery {
 		private static final String DATA = "data";
 		private static final String PIPELINE = "pipeline";
 
+		private static class QuerySubtype {
+
+			private static final String MATCH_QUERY = "matchQuery";
+			private static final String PROJECT_QUERY = "projectQuery";
+			private static final String UNWIND_QUERY = "unwindQuery";
+			private static final String GROUP_QUERY = "groupQuery";
+			private static final String LOOKUP_QUERY = "lookupQuery";
+		}
 	}
+
+	private static final String QUERY = "query";
 
 	public static Value pipeline( Value pipelineRequest ) throws FaultException {
 
-		ValueVector dataElements = pipelineRequest.getChildren( RequestType.DATA );
-        ValueVector pipeline = pipelineRequest.getChildren( RequestType.PIPELINE );
-		
+		ValueVector pipeline = pipelineRequest.getChildren( RequestType.PIPELINE );
+		pipelineRequest.children().remove( "pipeline" );
 
-        for ( Value stage: pipeline ) {
-            
-            if ( stage.hasChildren( 'matchRequest' ) ) {
+		for ( int i = 0; i < pipeline.size(); i++ ) {
+			Value stage = pipeline.get( i );
 
+			if ( stage.hasChildren( RequestType.QuerySubtype.MATCH_QUERY ) ) {
 
+				pipelineRequest.children().put( QUERY, stage.getChildren( RequestType.QuerySubtype.MATCH_QUERY ) );
+				Value response = MatchQuery.match( pipelineRequest );
+				pipelineRequest.children().put( RequestType.DATA, response.getChildren( TQueryExpression.ResponseType.RESULT ) );
 
-            }
+			} else  if ( stage.hasChildren( RequestType.QuerySubtype.PROJECT_QUERY ) ) {
 
-            if ( stage.hasChildren( 'projectRequest' ) ) {
+				pipelineRequest.children().put( QUERY, stage.getChildren( RequestType.QuerySubtype.PROJECT_QUERY ) );
+				Value response = ProjectQuery.project( pipelineRequest );
+				pipelineRequest.children().put( RequestType.DATA, response.getChildren( TQueryExpression.ResponseType.RESULT ) );
 
-                
+			} else  if ( stage.hasChildren( RequestType.QuerySubtype.UNWIND_QUERY ) ) {
 
-            }
+				pipelineRequest.children().put( QUERY, stage.getChildren( RequestType.QuerySubtype.UNWIND_QUERY ) );
+				Value response = UnwindQuery.unwind( pipelineRequest );
+				pipelineRequest.children().put( RequestType.DATA, response.getChildren( TQueryExpression.ResponseType.RESULT ) );
 
-            if ( stage.hasChildren( 'unwindRequest' ) ) {
+			} else if ( stage.hasChildren( RequestType.QuerySubtype.GROUP_QUERY) ) {
 
-                
+				pipelineRequest.children().put( QUERY, stage.getChildren( RequestType.QuerySubtype.GROUP_QUERY ) );
+				Value response = GroupQuery.group( pipelineRequest );
+				pipelineRequest.children().put( RequestType.DATA, response.getChildren( TQueryExpression.ResponseType.RESULT ) );
 
-            }
+			} else if ( stage.hasChildren( RequestType.QuerySubtype.LOOKUP_QUERY ) ) {
 
-            if ( stage.hasChildren( 'groupRequest' ) ) {
+				pipelineRequest.children().put( "leftData", pipelineRequest.getChildren( RequestType.DATA ) );
+				pipelineRequest.children().remove( QUERY );
+				pipelineRequest.children().remove( RequestType.DATA );
+				Value lookupQuery = stage.getFirstChild( RequestType.QuerySubtype.LOOKUP_QUERY );
+				pipelineRequest.children().put( "leftPath", lookupQuery.getChildren( "leftPath" ) );
+				pipelineRequest.children().put( "rightData", lookupQuery.getChildren( "rightData" ) );
+				pipelineRequest.children().put( "rightPath", lookupQuery.getChildren( "rightPath" ) );
+				pipelineRequest.children().put( "dstPath", lookupQuery.getChildren( "dstPath" ) );
 
-                
+				Value response = LookupQuery.lookup( pipelineRequest );
+				pipelineRequest.children().remove( "leftData" );
+				pipelineRequest.children().remove( "leftPath" );
+				pipelineRequest.children().remove( "rightData" );
+				pipelineRequest.children().remove( "rightPath" );
+				pipelineRequest.children().remove( "dstPath" );
+				pipelineRequest.children().put( RequestType.DATA, response.getChildren( TQueryExpression.ResponseType.RESULT ) );
 
-            }
+			} else {
 
-            if ( stage.hasChildren( 'lookupRequest' ) ) {
+				throw new FaultException( "Unrecognized operation at position " + i );
 
-                
+			}
 
-            } else {
+		}
 
-                throw new FaultException( "Unrecognized operation " + pipeline.getIndex( stage ) )
-
-            }
-
-        }
+		Value response = Value.create();
+		response.children().put( TQueryExpression.ResponseType.RESULT, pipelineRequest.getChildren( RequestType.DATA ) );
 
 		return response;
 	}

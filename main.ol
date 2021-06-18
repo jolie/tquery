@@ -109,23 +109,28 @@ type PipelineRequest    : void {
   data*                : undefined
   pipeline[1,*]        : 
     void {
-      matchRequest       : MatchRequest
+      matchQuery       : MatchExp
     } 
     |
     void {
-      projectRequest       : ProjectRequest
+      projectQuery       : ProjectExp
     }
     |
     void {
-      unwindRequest         : UnwindRequest
+      unwindQuery         : UnwindExp
     }
     |
     void {
-      groupRequest          : GroupRequest
+      groupQuery          : GroupExp
     }
     |
     void {
-      LookupRequest         : LookupRequest
+      lookupQuery         : void {
+        leftPath             : Path
+        rightData*           : undefined
+        rightPath            : Path
+        dstPath              : Path
+      }
     }
 }
 
