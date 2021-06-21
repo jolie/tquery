@@ -28,6 +28,8 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.tquery.engine.common.TQueryExpression;
 
+import java.util.stream.IntStream;
+
 public class ProjectQuery {
 
 	private static class RequestType {
@@ -48,9 +50,22 @@ public class ProjectQuery {
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
 		response.children().put( TQueryExpression.ResponseType.RESULT, responseVector );
-		for ( Value dataElement : dataElements ) {
-			responseVector.add( projectExpression.applyOn( dataElement ) );
+
+		try {
+			IntStream.range( 0, dataElements.size() ).parallel()
+							.forEach( i -> {
+								try {
+									responseVector.set( i, projectExpression.applyOn( dataElements.get( i ) ) );
+								} catch ( FaultException e ) {
+									throw new RuntimeException( e.getMessage() );
+								}
+							} );
+		} catch ( Exception e ) {
+			throw new FaultException( e.getMessage() );
 		}
+//		for ( Value dataElement : dataElements ) {
+//			responseVector.add( projectExpression.applyOn( dataElement ) );
+//		}
 		return response;
 	}
 
@@ -63,13 +78,12 @@ public class ProjectQuery {
 	}
 
 	private static TQueryExpression parseProjectExpression( Value query ) throws FaultException {
-		if ( query.isString() ){
+		if ( query.isString() ) {
 			return new PathProjectExpression( query.strValue() );
-		}
-		else {
+		} else {
 			return new ValueToPathProjectExpression(
-					query.getFirstChild( RequestType.ValueToPathExpression.DESTINATION_PATH ).strValue(),
-					query.getChildren( RequestType.ValueToPathExpression.VALUE )
+							query.getFirstChild( RequestType.ValueToPathExpression.DESTINATION_PATH ).strValue(),
+							query.getChildren( RequestType.ValueToPathExpression.VALUE )
 			);
 		}
 	}
