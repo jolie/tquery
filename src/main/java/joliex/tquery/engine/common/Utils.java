@@ -24,6 +24,8 @@
 package joliex.tquery.engine.common;
 
 import jolie.runtime.*;
+import jolie.runtime.expression.CompareCondition;
+import jolie.runtime.typing.TypeCastingException;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -34,11 +36,39 @@ import java.util.Set;
 
 public final class Utils {
 
-	public static boolean checkTreeEquality( Value v1, Value v2 ){
-		if ( v1.equals( v2 ) ){ // if the root value matches
-			if ( v1.children().keySet().equals( v2.children().keySet() ) ){
-				for( String node : v1.children().keySet() ){
-					if( !checkVectorEquality( v1.getChildren( node ),  v2.getChildren( node ) ) ){
+	public static boolean strictEquals( Value v1, Value v2 ) {
+		boolean r = false;
+		try {
+			if ( v1.isDefined() && v2.isDefined() ) {
+				if ( v1.isByteArray() && v2.isByteArray() ) {
+					r = v1.byteArrayValueStrict().equals( v2.byteArrayValueStrict() );
+				} else if ( v1.isString() && v2.isString() ) {
+					r = v1.strValueStrict().equals( v2.strValueStrict() );
+				} else if ( v1.isInt() && v2.isInt() ) {
+					r = v1.intValueStrict() == v2.intValueStrict();
+				} else if ( v1.isDouble() && v2.isDouble() ) {
+					r = v1.doubleValueStrict() == v2.doubleValueStrict();
+				} else if ( v1.isBool() && v2.isBool() ) {
+					r = v1.boolValueStrict() == v1.boolValueStrict();
+				} else if ( v1.isLong() && v2.isLong() ) {
+					r = v1.longValueStrict() == v2.longValueStrict();
+				} else if ( v1.valueObject() != null && v2.valueObject() != null ) {
+					r = v1.valueObject().equals( v2.valueObject() );
+				}
+			} else {
+				// undefined == undefined
+				r = !( v1.isDefined() && v2.isDefined() );
+			}
+		} catch ( TypeCastingException ignored ) {}
+		return r;
+	}
+
+	public static boolean checkTreeEquality( Value v1, Value v2 ) {
+//		if ( v1.equals( v2 ) ){ // if the root value matches
+		if ( strictEquals( v1, v2 ) ) {
+			if ( v1.children().keySet().equals( v2.children().keySet() ) ) {
+				for ( String node : v1.children().keySet() ) {
+					if ( !checkVectorEquality( v1.getChildren( node ), v2.getChildren( node ) ) ) {
 						return false;
 					}
 				}
@@ -51,10 +81,10 @@ public final class Utils {
 		}
 	}
 
-	public static boolean checkVectorEquality( ValueVector v1, ValueVector v2 ){
-		if ( v1.size() == v2.size() ){
+	public static boolean checkVectorEquality( ValueVector v1, ValueVector v2 ) {
+		if ( v1.size() == v2.size() ) {
 			for ( int i = 0; i < v1.size(); i++ ) {
-				if ( !checkTreeEquality( v1.get( i ), v2.get( i ) ) ){
+				if ( !checkTreeEquality( v1.get( i ), v2.get( i ) ) ) {
 					return false;
 				}
 			}
@@ -65,35 +95,35 @@ public final class Utils {
 	}
 
 	public static Value merge( Value v1, Value v2 ) throws FaultException {
-		if( CompareOperators.EQUAL.test( v1, v2 ) ){
+		if ( CompareOperators.EQUAL.test( v1, v2 ) ) {
 			Value returnValue = v1.clone();
 			// REMOVE THIS AND JUST USE CONDITIONALS
-			Set<String> keySetIntersection = new HashSet<>( v1.children().keySet() );
+			Set< String > keySetIntersection = new HashSet<>( v1.children().keySet() );
 			keySetIntersection.retainAll( v2.children().keySet() );
 			// we just need the unique set of keys for v2 since we already cloned the keys and children of V1
-			Set<String> uniqueKeySetV2 = new HashSet<>( v2.children().keySet() );
+			Set< String > uniqueKeySetV2 = new HashSet<>( v2.children().keySet() );
 			uniqueKeySetV2.removeAll( keySetIntersection );
 			for ( String key : keySetIntersection ) {
 				returnValue.children().put( key, merge( v1.getChildren( key ), v2.getChildren( key ) ) );
 			}
 			uniqueKeySetV2.forEach( ( key ) -> {
 				returnValue.children().put( key, v2.getChildren( key ) );
-			});
+			} );
 			return returnValue;
 		} else {
 			throw new FaultException(
-				"MergeValueException",
-				"Values: \n" + valueToPrettyString( v1 ) + "\n and \n" + valueToPrettyString( v2 ) + "\n cannot be merged"
+							"MergeValueException",
+							"Values: \n" + valueToPrettyString( v1 ) + "\n and \n" + valueToPrettyString( v2 ) + "\n cannot be merged"
 			);
 		}
 	}
 
-	public static ValueVector merge( ValueVector v1, ValueVector v2 ) throws FaultException{
-		if( v1.size() >= v2.size() ){
+	public static ValueVector merge( ValueVector v1, ValueVector v2 ) throws FaultException {
+		if ( v1.size() >= v2.size() ) {
 			ValueVector returnVector = ValueVector.create();
 			for ( int i = 0; i < v1.size(); i++ ) {
-				if( v2.size() > i ){
-					returnVector.add( merge( v1.get(i), v2.get( i ) ) );
+				if ( v2.size() > i ) {
+					returnVector.add( merge( v1.get( i ), v2.get( i ) ) );
 				} else {
 					returnVector.add( v1.get( i ) );
 				}
@@ -104,16 +134,17 @@ public final class Utils {
 		}
 	}
 
-	public static String valueToPrettyString( Value v ){
+	public static String valueToPrettyString( Value v ) {
 		Writer writer = new StringWriter();
 		ValuePrettyPrinter printer = new ValuePrettyPrinter( v, writer, "Value" );
 		try {
 			printer.run();
-		} catch( IOException e ) {} // Should never happen
+		} catch ( IOException e ) {
+		} // Should never happen
 		return writer.toString();
 	}
 
-	public static ValueVector listToValueVector( List< Value > values ){
+	public static ValueVector listToValueVector( List< Value > values ) {
 		ValueVector returnVector = ValueVector.create();
 		values.stream().forEach( returnVector::add );
 		return returnVector;
