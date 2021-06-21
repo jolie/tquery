@@ -27,6 +27,12 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.tquery.engine.common.Path;
 
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.stream.IntStream;
+
 class UnwindExpression {
 
 	private final Path path;
@@ -38,25 +44,29 @@ class UnwindExpression {
 	public ValueVector applyOn( ValueVector elements ) {
 		ValueVector resultElements = ValueVector.create();
 
-		elements.forEach( ( element ) -> {
-			element = Value.createClone( element );
-			String node = path.getCurrentNode();
-			ValueVector elementsContinuation = Path.parsePath( node )
-					.apply( element )
-					.orElse( ValueVector.create() );
+		ValueVector[] batches = new ValueVector[ elements.size() ];
 
-			if ( path.getContinuation().isPresent() ) {
-				elementsContinuation = new UnwindExpression(
-								path.getContinuation()
-									.get() )
-									.applyOn( Path.parsePath( node )
+		IntStream.range( 0, elements.size() ).parallel()
+						.forEach( index -> {
+							Value element = Value.createClone( elements.get( index ) );
+							String node = path.getCurrentNode();
+							ValueVector elementsContinuation = Path.parsePath( node )
 											.apply( element )
-											.orElse( ValueVector.create() ) );
-			}
+											.orElse( ValueVector.create() );
 
-			expand( element, elementsContinuation, node )
-					.forEach(resultElements::add);
-		});
+							if ( path.getContinuation().isPresent() ) {
+								elementsContinuation = new UnwindExpression(
+												path.getContinuation()
+																.get() )
+												.applyOn( Path.parsePath( node )
+																.apply( element )
+																.orElse( ValueVector.create() ) );
+							}
+							batches[ index ] = expand( element, elementsContinuation, node );
+						} );
+
+		Arrays.stream( batches ).flatMap( ValueVector::stream ).forEach( resultElements::add );
+		return resultElements;
 
 //		elements.forEach( ( element ) -> {
 //			element = Value.createClone( element );
@@ -77,26 +87,26 @@ class UnwindExpression {
 //			expand( element, elementsContinuation, node )
 //					.forEach(resultElements::add);
 //		});
-		
-		return resultElements;
+//
+//		return resultElements;
 	}
 
 	private ValueVector expand( Value element, ValueVector elements, String node ) {
 		ValueVector returnVector = ValueVector.create();
-		
-		elements.forEach( (elementContinuation) -> {
+
+		IntStream.range( 0, elements.size() ).parallel().forEach( index -> {
 			Value thisElement = Value.createClone( element );
-			returnVector.add( thisElement );
-			thisElement.children().put( node, getFreshValueVector( elementContinuation ) );
-		});
-		
+			returnVector.set( index, thisElement );
+			thisElement.children().put( node, getFreshValueVector( elements.get( index ) ) );
+		} );
+
 		return returnVector;
 	}
 
 	private ValueVector getFreshValueVector( Value element ) {
 		ValueVector result = ValueVector.create();
 		result.add( element );
-		
+
 		return result;
 	}
 }

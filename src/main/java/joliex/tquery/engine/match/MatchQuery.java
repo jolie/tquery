@@ -31,12 +31,14 @@ import joliex.tquery.engine.common.Path;
 import joliex.tquery.engine.common.TQueryExpression;
 import joliex.tquery.engine.common.Utils;
 
+import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 public final class MatchQuery {
 
@@ -70,25 +72,11 @@ public final class MatchQuery {
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
 		response.children().put( TQueryExpression.ResponseType.RESULT, responseVector );
-		AtomicInteger counter = new AtomicInteger( 0 );
-		IntStream.range( 0, mask.length )
-						.sequential()
-						.< Optional< Pair< Integer, Integer > > >mapToObj( maskIndex ->
-										mask[ maskIndex ] ?
-														Optional.of( Pair.of( maskIndex, counter.getAndIncrement() ) )
-														: Optional.empty()
-						)
-						.parallel()
-						.forEach( op ->
-										op.ifPresent( p ->
-														responseVector.set( p.value(), dataElements.get( p.key() ) )
-										)
-						);
-//		for ( int i = 0; i < mask.length; i++ ) {
-//			if ( mask[i] ) {
-//				responseVector.add( dataElements.get( i ) );
-//			}
-//		}
+		for ( int i = 0; i < mask.length; i++ ) {
+			if ( mask[i] ) {
+				responseVector.add( dataElements.get( i ) );
+			}
+		}
 		return response;
 	}
 
