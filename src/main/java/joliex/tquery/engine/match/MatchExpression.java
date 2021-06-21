@@ -26,7 +26,16 @@ package joliex.tquery.engine.match;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
+import java.util.stream.IntStream;
+
 public interface MatchExpression {
-	boolean[] applyOn( ValueVector elements );
+
+	default boolean[] applyOn( ValueVector elements ){
+		boolean[] mask = MatchUtils.getMask( elements );
+		IntStream.range( 0, elements.size() )
+						.parallel().forEach( i -> mask[ i ] = applyOn( elements.get( i ) ) );
+		return mask;
+	}
+
 	boolean	  applyOn( Value element );
 }

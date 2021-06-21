@@ -149,13 +149,23 @@ public class MatchQueryTest {
 					"        \"left\": {\n" +
 					"          \"equal\": {\n" +
 					"            \"path\": \"date\",\n" +
-					"            \"value\": 20201127\n" +
+					"            \"value\": 20201128\n" +
 					"          }\n" +
 					"        },\n" +
 					"        \"right\": {\n" +
-					"          \"equal\": {\n" +
-					"            \"path\": \"date\",\n" +
-					"            \"value\": 20201128\n" +
+					"          \"or\": {\n" +
+					"            \"left\": {\n" +
+					"              \"equal\": {\n" +
+					"                \"path\": \"date\",\n" +
+					"                \"value\": 20201129\n" +
+					"              }\n" +
+					"            },\n" +
+					"            \"right\": {\n" +
+					"              \"equal\": {\n" +
+					"                \"path\": \"date\",\n" +
+					"                \"value\": 20201130\n" +
+					"              }\n" +
+					"            }\n" +
 					"          }\n" +
 					"        }\n" +
 					"      }\n" +

@@ -5,19 +5,28 @@
         "left": {
           "equal": {
             "path": "date",
-            "value": "20201127"
+            "value": 20201128
           }
         },
         "right": {
-          "equal": {
-            "path": "date",
-            "value": "20201128"
+          "or": {
+            "left": {
+              "equal": {
+                "path": "date",
+                "value": 20201129
+              }
+            },
+            "right": {
+              "equal": {
+                "path": "date",
+                "value": 20201130
+              }
+            }
           }
         }
       }
     }
-  }
-,
+  },
   {
     "groupQuery": {
       "aggregate": {
@@ -25,8 +34,7 @@
         "dstPath": "t"
       }
     }
-  }
-,
+  },
   {
     "projectQuery": [
       {

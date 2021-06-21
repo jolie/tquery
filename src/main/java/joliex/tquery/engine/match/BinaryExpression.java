@@ -42,19 +42,8 @@ public class BinaryExpression implements MatchExpression {
 	}
 	
 	public static BinaryExpression AndExpression( MatchExpression leftExpression, MatchExpression rightExpression ){
-		Function<Value, Boolean> assembleFunction = (Value v) -> {
-			return leftExpression.applyOn( v ) && rightExpression.applyOn( v );
-		};
+		Function<Value, Boolean> assembleFunction = (Value v) -> leftExpression.applyOn( v ) && rightExpression.applyOn( v );
 		return new BinaryExpression( assembleFunction );
-	}
-
-	@Override
-	public boolean[] applyOn( ValueVector elements ) {
-		boolean[] mask = MatchUtils.getMask( elements );
-		for ( int i = 0; i < mask.length; i++ ) {
-			mask[ i ] = applyOn( elements.get( i ) );
-		}
-		return mask;
 	}
 
 	@Override

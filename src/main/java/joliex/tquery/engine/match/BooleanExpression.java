@@ -37,13 +37,6 @@ public class BooleanExpression implements MatchExpression {
 	}
 	
 	@Override
-	public boolean[] applyOn( ValueVector elements ) {
-		boolean[] mask = new boolean[ elements.size() ];
-		Arrays.fill( mask, booleanValue );
-		return mask;
-	}
-
-	@Override
 	public boolean applyOn( Value element ) {
 		return booleanValue;
 	}

@@ -37,25 +37,46 @@ class UnwindExpression {
 
 	public ValueVector applyOn( ValueVector elements ) {
 		ValueVector resultElements = ValueVector.create();
+
 		elements.forEach( ( element ) -> {
 			element = Value.createClone( element );
 			String node = path.getCurrentNode();
 			ValueVector elementsContinuation = Path.parsePath( node )
 					.apply( element )
 					.orElse( ValueVector.create() );
-			
+
 			if ( path.getContinuation().isPresent() ) {
-				elementsContinuation = new UnwindExpression( 
+				elementsContinuation = new UnwindExpression(
 								path.getContinuation()
 									.get() )
 									.applyOn( Path.parsePath( node )
 											.apply( element )
 											.orElse( ValueVector.create() ) );
 			}
-			
+
 			expand( element, elementsContinuation, node )
-					.forEach(resultElements::add);  			
+					.forEach(resultElements::add);
 		});
+
+//		elements.forEach( ( element ) -> {
+//			element = Value.createClone( element );
+//			String node = path.getCurrentNode();
+//			ValueVector elementsContinuation = Path.parsePath( node )
+//					.apply( element )
+//					.orElse( ValueVector.create() );
+//
+//			if ( path.getContinuation().isPresent() ) {
+//				elementsContinuation = new UnwindExpression(
+//								path.getContinuation()
+//									.get() )
+//									.applyOn( Path.parsePath( node )
+//											.apply( element )
+//											.orElse( ValueVector.create() ) );
+//			}
+//
+//			expand( element, elementsContinuation, node )
+//					.forEach(resultElements::add);
+//		});
 		
 		return resultElements;
 	}

@@ -36,15 +36,6 @@ public class ExistsExpression implements MatchExpression {
 	}
 
 	@Override
-	public boolean[] applyOn( ValueVector elements ) {
-		boolean[] mask = MatchUtils.getMask( elements );
-		for (int i = 0; i < mask.length; i++) {
-			mask[ i ] = applyOn( elements.get( i ) );
-		}
-		return mask;
-	}
-
-	@Override
 	public boolean applyOn( Value element ) {
 		return path.exists( element );
 	}

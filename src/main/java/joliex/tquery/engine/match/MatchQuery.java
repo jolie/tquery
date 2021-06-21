@@ -26,11 +26,17 @@ package joliex.tquery.engine.match;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.util.Pair;
 import joliex.tquery.engine.common.Path;
 import joliex.tquery.engine.common.TQueryExpression;
 import joliex.tquery.engine.common.Utils;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 public final class MatchQuery {
 
@@ -58,22 +64,36 @@ public final class MatchQuery {
 		Value query = matchRequest.getFirstChild( RequestType.QUERY );
 		ValueVector dataElements = matchRequest.getChildren( RequestType.DATA );
 		boolean[] mask = parseMatchExpression( query )
-				.orElseThrow( 
-					() -> new FaultException( "MatchQuerySyntaxException", "Could not parse query expression " + Utils.valueToPrettyString( query ) ) 
-				).applyOn( dataElements );
+						.orElseThrow(
+										() -> new FaultException( "MatchQuerySyntaxException", "Could not parse query expression " + Utils.valueToPrettyString( query ) )
+						).applyOn( dataElements );
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
 		response.children().put( TQueryExpression.ResponseType.RESULT, responseVector );
-		for ( int i = 0; i < mask.length; i++ ) {
-			if ( mask[i] ) {
-				responseVector.add( dataElements.get( i ) );
-			}
-		}
+		AtomicInteger counter = new AtomicInteger( 0 );
+		IntStream.range( 0, mask.length )
+						.sequential()
+						.< Optional< Pair< Integer, Integer > > >mapToObj( maskIndex ->
+										mask[ maskIndex ] ?
+														Optional.of( Pair.of( maskIndex, counter.getAndIncrement() ) )
+														: Optional.empty()
+						)
+						.parallel()
+						.forEach( op ->
+										op.ifPresent( p ->
+														responseVector.set( p.value(), dataElements.get( p.key() ) )
+										)
+						);
+//		for ( int i = 0; i < mask.length; i++ ) {
+//			if ( mask[i] ) {
+//				responseVector.add( dataElements.get( i ) );
+//			}
+//		}
 		return response;
 	}
-	
-	public static Optional<MatchExpression> parseMatchExpression( Value query ){
-		MatchExpression e =  unsafeParseMatchExpression( query );
+
+	public static Optional< MatchExpression > parseMatchExpression( Value query ) {
+		MatchExpression e = unsafeParseMatchExpression( query );
 		return ( e != null ) ? Optional.of( e ) : Optional.empty();
 	}
 
@@ -86,8 +106,8 @@ public final class MatchQuery {
 	//    | .equal              : void { .path: Path, .value[1,*]: undefined }
 	//    | .exists             : Path
 	//    | bool
-		
-		private static MatchExpression unsafeParseMatchExpression( Value query ) throws IllegalArgumentException {
+
+	private static MatchExpression unsafeParseMatchExpression( Value query ) throws IllegalArgumentException {
 		if ( query.children().size() > 1 ) {
 			throw new IllegalArgumentException( Utils.valueToPrettyString( query ) );
 		} else {
@@ -95,44 +115,44 @@ public final class MatchQuery {
 				return new BooleanExpression( query.boolValue() );
 			} else if ( query.hasChildren( RequestType.QuerySubtype.EQUAL ) ) {
 				return new EqualExpression(
-						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getFirstChild( RequestType.QuerySubtype.PATH ).strValue() ),
-						query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getChildren( RequestType.QuerySubtype.VALUE )
+								Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getFirstChild( RequestType.QuerySubtype.PATH ).strValue() ),
+								query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getChildren( RequestType.QuerySubtype.VALUE )
 				);
 			} else if ( query.hasChildren( RequestType.QuerySubtype.EXISTS ) ) {
 				return new ExistsExpression(
-						Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EXISTS ).strValue() )
+								Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EXISTS ).strValue() )
 				);
 			} else if ( query.hasChildren( RequestType.QuerySubtype.OR ) ) {
 				return BinaryExpression.OrExpression(
-						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.OR ).getFirstChild( RequestType.QuerySubtype.LEFT ) )
-							.orElseThrow( 
-								() -> new IllegalArgumentException( "Could not parse left hand of " + Utils.valueToPrettyString( query ) )
-						),
-						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.OR ).getFirstChild( RequestType.QuerySubtype.RIGHT ) )
-							.orElseThrow(
-								() -> new IllegalArgumentException( "Could not parse right hand of " + Utils.valueToPrettyString( query ) )
-						)
+								parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.OR ).getFirstChild( RequestType.QuerySubtype.LEFT ) )
+												.orElseThrow(
+																() -> new IllegalArgumentException( "Could not parse left hand of " + Utils.valueToPrettyString( query ) )
+												),
+								parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.OR ).getFirstChild( RequestType.QuerySubtype.RIGHT ) )
+												.orElseThrow(
+																() -> new IllegalArgumentException( "Could not parse right hand of " + Utils.valueToPrettyString( query ) )
+												)
 				);
 			} else if ( query.hasChildren( RequestType.QuerySubtype.AND ) ) {
 				return BinaryExpression.AndExpression(
-						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.AND ).getFirstChild( RequestType.QuerySubtype.LEFT ) )
-							.orElseThrow(
-								() -> new IllegalArgumentException( "Could not parse left hand of " + Utils.valueToPrettyString( query ) )
-						),
-						parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.AND ).getFirstChild( RequestType.QuerySubtype.RIGHT ) )
-							.orElseThrow(
-								() -> new IllegalArgumentException( "Could not parse right hand of " + Utils.valueToPrettyString( query ) )
-						)
+								parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.AND ).getFirstChild( RequestType.QuerySubtype.LEFT ) )
+												.orElseThrow(
+																() -> new IllegalArgumentException( "Could not parse left hand of " + Utils.valueToPrettyString( query ) )
+												),
+								parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.AND ).getFirstChild( RequestType.QuerySubtype.RIGHT ) )
+												.orElseThrow(
+																() -> new IllegalArgumentException( "Could not parse right hand of " + Utils.valueToPrettyString( query ) )
+												)
 				);
-			} else if ( query.hasChildren( RequestType.QuerySubtype.NOT ) ){
-					return new NotExpression( parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.NOT ) )
-						.orElseThrow(
-							() -> new IllegalArgumentException( "Could not parse " + Utils.valueToPrettyString( query ) )
-						)
-					);
-				}
+			} else if ( query.hasChildren( RequestType.QuerySubtype.NOT ) ) {
+				return new NotExpression( parseMatchExpression( query.getFirstChild( RequestType.QuerySubtype.NOT ) )
+								.orElseThrow(
+												() -> new IllegalArgumentException( "Could not parse " + Utils.valueToPrettyString( query ) )
+								)
+				);
 			}
+		}
 		return null;
 	}
-	
+
 }

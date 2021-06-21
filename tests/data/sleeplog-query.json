@@ -38,7 +38,7 @@
         "left": {
           "equal": {
             "path": "year",
-            "value": "2020"
+            "value": 2020
           }
         },
         "right": {
@@ -46,7 +46,7 @@
             "left": {
               "equal": {
                 "path": "month",
-                "value": "11"
+                "value": 11
               }
             },
             "right": {
@@ -54,13 +54,13 @@
                 "left": {
                   "equal": {
                     "path": "day",
-                    "value": "29"
+                    "value": 29
                   }
                 },
                 "right": {
                   "equal": {
                     "path": "day",
-                    "value": "30"
+                    "value": 30
                   }
                 }
               }
