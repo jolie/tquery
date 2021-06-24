@@ -39,19 +39,23 @@ public final class GroupQuery {
 
 		// grouping request parsing, i.e., s_1 > r_1, ..., s_n > r_n
 		List< GroupPair > groupingList = new LinkedList<>();
-		group.forEach( gRequest -> groupingList.add( getGroupPair(
-						Path.parsePath( gRequest.getFirstChild( RequestType.GroupDefinition.SRC_PATH ).strValue() ),
-						Path.parsePath( gRequest.getFirstChild( RequestType.GroupDefinition.DST_PATH ).strValue() )
-		) ) );
+		for ( Value gRequest : group ) {
+			groupingList.add( getGroupPair(
+							Path.parsePath( gRequest.getFirstChild( RequestType.GroupDefinition.SRC_PATH ).strValue() ),
+							Path.parsePath( gRequest.getFirstChild( RequestType.GroupDefinition.DST_PATH ).strValue() ) )
+			);
+		}
 
 		// aggregation request parsing, i.e., q_1 > p_1, ..., q_n > p_n
 		List< AggregatePair > aggregationList = new LinkedList<>();
-		aggregate.forEach( gRequest -> aggregationList.add( getAggregatePair(
-						Path.parsePath( gRequest.getFirstChild( RequestType.GroupDefinition.SRC_PATH ).strValue() ),
-						Path.parsePath( gRequest.getFirstChild( RequestType.GroupDefinition.DST_PATH ).strValue() ),
-						gRequest.hasChildren( RequestType.GroupDefinition.DISTINCT )
-										&&  gRequest.getFirstChild( RequestType.GroupDefinition.DISTINCT ).boolValue()
-		) ) );
+		for ( Value gRequest : aggregate ) {
+			aggregationList.add( getAggregatePair(
+							Path.parsePath( gRequest.getFirstChild( RequestType.GroupDefinition.SRC_PATH ).strValue() ),
+							Path.parsePath( gRequest.getFirstChild( RequestType.GroupDefinition.DST_PATH ).strValue() ),
+							gRequest.hasChildren( RequestType.GroupDefinition.DISTINCT )
+											&& gRequest.getFirstChild( RequestType.GroupDefinition.DISTINCT ).boolValue()
+			) );
+		}
 
 		ValueVector resultElements = ValueVector.create();
 
@@ -59,16 +63,29 @@ public final class GroupQuery {
 		if ( groupingList.size() > 0 ) {
 			List< List< Boolean > > combinations = getCombinations( groupingList.size() );
 			List< MatchExpression > existenceGroups =
-							combinations.stream().map( c -> getMatchExistenceExpression( c, groupingList ) ).collect( Collectors.toList() );
+							Utils.applyOrFault( () -> combinations.stream()
+											.map( c -> {
+												try {
+													return getMatchExistenceExpression( c, groupingList );
+												} catch ( FaultException e ) {
+													throw new RuntimeException( e.getMessage() );
+												}
+											} )
+											.collect( Collectors.toList() ) );
 			List< List< Value > > concatenationList =
-							existenceGroups.stream().map( matchExpression -> {
-								boolean[] bitMask = matchExpression.applyOn( dataElements );
-								List< Value > dataList = IntStream.range( 0, bitMask.length )
-												.filter( i -> bitMask[ i ] )
-												.mapToObj( dataElements::get )
-												.collect( Collectors.toList() );
-								return group( dataList, combinations.get( existenceGroups.indexOf( matchExpression ) ), groupingList, aggregationList );
-							} ).collect( Collectors.toList() );
+							Utils.applyOrFault( () -> existenceGroups.stream().map( matchExpression -> {
+												boolean[] bitMask = matchExpression.applyOn( dataElements );
+												List< Value > dataList = IntStream.range( 0, bitMask.length )
+																.filter( i -> bitMask[ i ] )
+																.mapToObj( dataElements::get )
+																.collect( Collectors.toList() );
+												try {
+													return group( dataList, combinations.get( existenceGroups.indexOf( matchExpression ) ), groupingList, aggregationList );
+												} catch ( FaultException e ) {
+													throw new RuntimeException( e.getMessage() );
+												}
+											}
+							).collect( Collectors.toList() ) );
 			concatenationList.forEach( l -> l.forEach( resultElements::add ) );
 		} else {
 			List< Value > dataList = dataElements.stream().collect( Collectors.toList() );
@@ -79,11 +96,18 @@ public final class GroupQuery {
 		return response;
 	}
 
-	private static List< Value > group( List< Value > dataList, List< Boolean > combination, List< GroupPair > groupingList, List< AggregatePair > aggregationList ) {
+	private static List< Value > group(
+					List< Value > dataList,
+					List< Boolean > combination,
+					List< GroupPair > groupingList,
+					List< AggregatePair > aggregationList ) throws FaultException {
 		List< Value > returnVector = new LinkedList<>();
 		if ( dataList.size() > 0 ) {
 			if ( combination.stream().anyMatch( i -> i ) ) {
-				List< Path > paths = IntStream.range( 0, combination.size() ).filter( combination::get ).mapToObj( i -> groupingList.get( i ).srcPath() ).collect( Collectors.toList() );
+				List< Path > paths = IntStream.range( 0, combination.size() )
+								.filter( combination::get )
+								.mapToObj( i -> groupingList.get( i ).srcPath() )
+								.collect( Collectors.toList() );
 				boolean[] bitMask = getMatchGroupingExpression( paths, dataList.get( 0 ) )
 								.applyOn( Utils.listToValueVector( dataList ) );
 				List< Value > current = new LinkedList<>();
@@ -104,9 +128,9 @@ public final class GroupQuery {
 		return returnVector;
 	}
 
-	private static MatchExpression getMatchGroupingExpression( List< Path > paths, Value v ) {
+	private static MatchExpression getMatchGroupingExpression( List< Path > paths, Value v ) throws FaultException {
 		if ( paths.size() < 0 ) {
-			throw new RuntimeException( "getMatchGroupingExpression received a combination of size 0" ); //todo: refine this error into a Fault
+			throw new FaultException( "getMatchGroupingExpression received a combination of size 0" ); //todo: refine this error into a Fault
 		} else {
 			MatchExpression currentExpression = new EqualExpression( paths.get( 0 ), paths.get( 0 ).apply( v ).get() ); // we can always get here, because we passed the existence tests in the group method
 			if ( paths.size() > 1 ) {
@@ -145,7 +169,7 @@ public final class GroupQuery {
 							.map( v -> aggregationElement.srcPath().apply( v ) )
 							.filter( Optional::isPresent )
 							.map( Optional::get )
-							.filter( e -> ( ! aggregationElement.isDistinct() ) || d.isDistinct( e ) )
+							.filter( e -> ( !aggregationElement.isDistinct() ) || d.isDistinct( e ) )
 							.collect( Collectors.toList() );
 			ValueVector mergedValueVector = ValueVector.create();
 			distinctValueVectors.stream().flatMap( ValueVector::stream ).forEach( mergedValueVector::add );
@@ -188,9 +212,9 @@ public final class GroupQuery {
 		}
 	}
 
-	private static MatchExpression getMatchExistenceExpression( List< Boolean > combination, List< GroupPair > groupPairList ) {
+	private static MatchExpression getMatchExistenceExpression( List< Boolean > combination, List< GroupPair > groupPairList ) throws FaultException {
 		if ( combination.size() < 0 || groupPairList.size() < 0 ) {
-			throw new RuntimeException( "getMatchExistenceExpression received a combination of size 0" ); //todo: refine this error into a Fault
+			throw new FaultException( "getMatchExistenceExpression received a combination of size 0" ); //todo: refine this error into a Fault
 		} else {
 			MatchExpression currentExpression = new ExistsExpression( groupPairList.get( 0 ).srcPath() );
 			currentExpression = combination.get( 0 ) ? currentExpression : new NotExpression( currentExpression );
@@ -244,6 +268,7 @@ public final class GroupQuery {
 	public static AggregatePair getAggregatePair( Path sourcePath, Path destinationPath, Boolean isDistinc ) {
 		return new AggregatePair( sourcePath, destinationPath, isDistinc );
 	}
+
 	private static class DistinctFilter {
 		Set< ValueVector > seen;
 

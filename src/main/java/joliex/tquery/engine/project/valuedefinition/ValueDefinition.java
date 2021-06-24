@@ -27,6 +27,6 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 public interface ValueDefinition {
-	public ValueVector evaluate( Value value );
-	public boolean isDefined( Value value );
+	ValueVector evaluate( Value value );
+	boolean isDefined( Value value );
 }

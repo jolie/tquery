@@ -31,38 +31,29 @@ import joliex.tquery.engine.common.Utils;
 
 import java.util.LinkedList;
 
-public class ProjectExpressionChain implements TQueryExpression {
+public class ProjectExpressionChain implements ProjectExpression {
 
-	private final LinkedList<TQueryExpression> expressions = new LinkedList<>();
+	private final LinkedList< ProjectExpression > expressions = new LinkedList<>();
 
-	public ProjectExpressionChain addExpression( TQueryExpression expression ){
+	public ProjectExpressionChain addExpression( ProjectExpression expression ) {
 		expressions.add( expression );
 		return this;
 	}
-	
+
 	@Override
-	public ValueVector applyOn( ValueVector elements ) throws FaultException{
-		ValueVector returnVector = ValueVector.create();
-		for ( Value element : elements ) {
-			returnVector.add( this.applyOn( element ) );
-		}
-		return returnVector;
-	};	
-	
-	@Override
-	public Value applyOn( Value element ) throws FaultException{
-		if( expressions.isEmpty() ){
+	public Value applyOn( Value element ) throws FaultException {
+		if ( expressions.isEmpty() ) {
 			return element;
 		} else {
 			return applyOn( element, 0 );
 		}
 	}
-	
+
 	private Value applyOn( Value element, int index ) throws FaultException {
-		if( expressions.size()-1 > index ){
+		if ( expressions.size() - 1 > index ) {
 			return Utils.merge( expressions.get( index ).applyOn( element ), applyOn( element, ++index ) );
 		} else {
 			return expressions.get( index ).applyOn( element );
 		}
- 	}
+	}
 }

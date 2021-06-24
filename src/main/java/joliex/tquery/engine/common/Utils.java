@@ -33,6 +33,8 @@ import java.io.Writer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public final class Utils {
 
@@ -148,6 +150,15 @@ public final class Utils {
 		ValueVector returnVector = ValueVector.create();
 		values.stream().forEach( returnVector::add );
 		return returnVector;
+	}
+
+
+	public static < T > T applyOrFault( Supplier< T > supplier ) throws FaultException {
+		try {
+			return supplier.get();
+		} catch ( Exception e ){
+			throw new FaultException( e.getMessage() );
+		}
 	}
 
 }

@@ -42,15 +42,15 @@ public class UnwindQuery {
 		return responseValue;
 	}
 
-	private static ValueVector unwindOperator( Path path, ValueVector elements ) {
+	private static ValueVector unwindOperator( Path path, ValueVector elements ) throws FaultException {
 		UnwindExpression unwindExpression = new UnwindExpression( path );
 		return unwindExpression.applyOn( elements );
 	}
 
 	private static class RequestType {
 		
-		private static String QUERY = "query";
-		private static String DATA = "data";
+		private static final String QUERY = "query";
+		private static final String DATA = "data";
 	}
 
 }

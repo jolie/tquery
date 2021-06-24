@@ -37,7 +37,7 @@ public class PathValueDefinition implements ValueDefinition {
 
 	private final Path path;
 	
-	public PathValueDefinition( String path ) {
+	public PathValueDefinition( String path ) throws FaultException {
 		this.path = Path.parsePath( path );
 	}
 	

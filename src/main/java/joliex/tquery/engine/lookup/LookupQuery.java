@@ -1,5 +1,7 @@
 package joliex.tquery.engine.lookup;
 
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -7,6 +9,7 @@ import joliex.tquery.engine.common.Path;
 import joliex.tquery.engine.common.TQueryExpression;
 import joliex.tquery.engine.common.Utils;
 import joliex.tquery.engine.match.EqualExpression;
+import joliex.tquery.engine.project.ProjectExpression;
 import joliex.tquery.engine.project.ValueToPathProjectExpression;
 
 import java.util.Optional;
@@ -54,7 +57,9 @@ public final class LookupQuery {
 		}
 
 		try {
-			IntStream.range( 0, leftData.size() ).parallel().forEach( index -> {
+			Flowable.range( 0, leftData.size() )
+							.subscribeOn( Schedulers.computation() )
+							.blockingSubscribe( index -> {
 								try {
 									ValueVector responseVector = ValueVector.create();
 									Value leftValue = leftData.get( index );
@@ -73,7 +78,7 @@ public final class LookupQuery {
 											}
 										}
 
-										TQueryExpression beta = new ValueToPathProjectExpression( dstPath.strValue(), responseVector );
+										ProjectExpression beta = new ValueToPathProjectExpression( dstPath.strValue(), responseVector );
 										Value value = beta.applyOn( leftValue );
 										result.set( index, Utils.merge( leftValue, value ) );
 									}
@@ -85,34 +90,6 @@ public final class LookupQuery {
 		} catch ( Exception e ){
 			throw new FaultException( e.getMessage() );
 		}
-
-
-//		for ( Value leftValue : leftData ) {
-//			ValueVector responseVector = ValueVector.create();
-//
-//			//result of the path application to the first tree (leftValue) of leftData array
-//			Optional< ValueVector > optionalValues = leftPath.apply( leftValue );
-//
-//			if ( optionalValues.isPresent() ) {
-//				ValueVector values = optionalValues.get();
-//
-//				//check if the rightData array contains any tree under the rightPath with the content equals to the content of values
-//				EqualExpression v = new EqualExpression( rightPath, values );
-//				boolean[] mask = v.applyOn( rightData );
-//
-//				for ( int i = 0; i < mask.length; i++ ) {
-//					if ( mask[ i ] ) {
-//						responseVector.add( rightData.get( i ) );
-//					}
-//				}
-//
-//				TQueryExpression beta = new ValueToPathProjectExpression( dstPath.strValue(), responseVector );
-//				Value value = beta.applyOn( leftValue );
-//
-//				result.add( Utils.merge( leftValue, value ) );
-//			}
-//
-//		}
 
 		Value response = Value.create();
 		response.children().put( TQueryExpression.ResponseType.RESULT, result );

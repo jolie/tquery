@@ -31,7 +31,7 @@ public interface TQueryExpression {
 	ValueVector applyOn( ValueVector elements ) throws FaultException;
 	Value		applyOn( Value element ) throws FaultException;
 	
-	public static class ResponseType {
+	class ResponseType {
 		public static final String RESULT = "result";
 	}
 }

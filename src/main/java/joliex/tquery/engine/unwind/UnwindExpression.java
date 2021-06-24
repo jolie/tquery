@@ -23,15 +23,13 @@
 
 package joliex.tquery.engine.unwind;
 
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.tquery.engine.common.Path;
 
-import java.sql.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.stream.IntStream;
 
 class UnwindExpression {
 
@@ -46,59 +44,43 @@ class UnwindExpression {
 
 		ValueVector[] batches = new ValueVector[ elements.size() ];
 
-		IntStream.range( 0, elements.size() ).parallel()
-						.forEach( index -> {
-							Value element = Value.createClone( elements.get( index ) );
+		Flowable.range( 0, elements.size() )
+						.subscribeOn( Schedulers.computation() )
+						.blockingSubscribe( index -> {
 							String node = path.getCurrentNode();
+							Value element = elements.get( index );
 							ValueVector elementsContinuation = Path.parsePath( node )
 											.apply( element )
 											.orElse( ValueVector.create() );
-
 							if ( path.getContinuation().isPresent() ) {
-								elementsContinuation = new UnwindExpression(
-												path.getContinuation()
-																.get() )
-												.applyOn( Path.parsePath( node )
-																.apply( element )
-																.orElse( ValueVector.create() ) );
+								elementsContinuation =
+												new UnwindExpression( path.getContinuation().get() )
+																.applyOn( Path.parsePath( node ).apply( element ).orElse( ValueVector.create() ) );
 							}
 							batches[ index ] = expand( element, elementsContinuation, node );
 						} );
-
 		Arrays.stream( batches ).flatMap( ValueVector::stream ).forEach( resultElements::add );
 		return resultElements;
 
-//		elements.forEach( ( element ) -> {
-//			element = Value.createClone( element );
-//			String node = path.getCurrentNode();
-//			ValueVector elementsContinuation = Path.parsePath( node )
-//					.apply( element )
-//					.orElse( ValueVector.create() );
-//
-//			if ( path.getContinuation().isPresent() ) {
-//				elementsContinuation = new UnwindExpression(
-//								path.getContinuation()
-//									.get() )
-//									.applyOn( Path.parsePath( node )
-//											.apply( element )
-//											.orElse( ValueVector.create() ) );
-//			}
-//
-//			expand( element, elementsContinuation, node )
-//					.forEach(resultElements::add);
-//		});
-//
-//		return resultElements;
 	}
+
 
 	private ValueVector expand( Value element, ValueVector elements, String node ) {
 		ValueVector returnVector = ValueVector.create();
 
-		IntStream.range( 0, elements.size() ).parallel().forEach( index -> {
-			Value thisElement = Value.createClone( element );
-			returnVector.set( index, thisElement );
-			thisElement.children().put( node, getFreshValueVector( elements.get( index ) ) );
-		} );
+		Flowable.range( 0, elements.size() )
+						.subscribeOn( Schedulers.computation() )
+						.blockingSubscribe( index -> {
+							Value thisElement = Value.create();
+							returnVector.set( index, thisElement );
+							Flowable.fromStream(
+											element.children().keySet().stream().filter( key -> !key.equals( node ) )
+							).subscribeOn( Schedulers.computation() )
+											.blockingSubscribe( key ->
+															thisElement.children().put( key, ValueVector.createClone( element.getChildren( key ) ) )
+											);
+							thisElement.children().put( node, getFreshValueVector( elements.get( index ) ) );
+						} );
 
 		return returnVector;
 	}
@@ -106,7 +88,7 @@ class UnwindExpression {
 	private ValueVector getFreshValueVector( Value element ) {
 		ValueVector result = ValueVector.create();
 		result.add( element );
-
 		return result;
 	}
+
 }

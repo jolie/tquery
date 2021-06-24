@@ -14,7 +14,7 @@ public class UnwindQueryTest {
 
 	public static void main( String[] args ) throws IOException {
 
-		String jsonString = Files.readString( Path.of( "tests/data/sleeplog-0.json" ) );
+		String jsonString = Files.readString( Path.of( "tests/data/sleeplog-5.json" ) );
 		StringReader reader = new StringReader( jsonString );
 		Value data = Value.create();
 		JsUtils.parseJsonIntoValue( reader, data, false );
@@ -26,12 +26,16 @@ public class UnwindQueryTest {
 
 //		System.out.println( Utils.valueToPrettyString( request ) );
 
-		Long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();
 
 		try {
 			Value response = UnwindQuery.unwind( request );
 			System.out.println( "Finished after: " + ( System.currentTimeMillis() - start ) + "ms" );
-			System.out.println( Utils.valueToPrettyString( response ) );
+			System.out.println(
+							"data: " + request.getFirstChild( "data" ).getChildren( "M" ).size() +
+							", result: " + response.getChildren( "result" ).size()
+			);
+//			System.out.println( Utils.valueToPrettyString( response ) );
 		} catch ( FaultException e ) {
 			e.printStackTrace();
 		}

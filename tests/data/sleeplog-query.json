@@ -1,8 +1,7 @@
 [
   {
-    "unwindQuery": "M.D.L"
-  }
-,
+    "unwindQuery" : "M.D.L"
+  },
   {
     "projectQuery": [
       {

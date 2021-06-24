@@ -103,6 +103,7 @@ type LookupRequest      : void {
 
 type ResponseType       : void {
   result*              : undefined
+  queryTime?           : int
 }
 
 type PipelineRequest    : void {

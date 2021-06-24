@@ -19,7 +19,10 @@
    },
    "distJar": "tquery-@VERSION@.jar",
    "dependencies": {
-      "mvn": {},
+      "mvn": {
+         "io.reactivex.rxjava3:rxjava" : "3.0.13",
+         "org.reactivestreams:reactive-streams" : "1.0.3"
+      },
       "npm": {}
    }
 }

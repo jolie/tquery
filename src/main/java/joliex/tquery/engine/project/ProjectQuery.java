@@ -23,6 +23,8 @@
 
 package joliex.tquery.engine.project;
 
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -46,26 +48,24 @@ public class ProjectQuery {
 	public static Value project( Value projectRequest ) throws FaultException {
 		ValueVector query = projectRequest.getChildren( RequestType.QUERY );
 		ValueVector dataElements = projectRequest.getChildren( RequestType.DATA );
-		TQueryExpression projectExpression = parseProjectionChain( query );
+		ProjectExpression projectExpression = parseProjectionChain( query );
 		Value response = Value.create();
 		ValueVector responseVector = ValueVector.create();
 		response.children().put( TQueryExpression.ResponseType.RESULT, responseVector );
 
 		try {
-			IntStream.range( 0, dataElements.size() ).parallel()
-							.forEach( i -> {
+			Flowable.range( 0, dataElements.size() )
+							.subscribeOn( Schedulers.computation() )
+							.blockingSubscribe( i -> {
 								try {
 									responseVector.set( i, projectExpression.applyOn( dataElements.get( i ) ) );
-								} catch ( FaultException e ) {
+								} catch ( Exception e ) {
 									throw new RuntimeException( e.getMessage() );
 								}
 							} );
 		} catch ( Exception e ) {
 			throw new FaultException( e.getMessage() );
 		}
-//		for ( Value dataElement : dataElements ) {
-//			responseVector.add( projectExpression.applyOn( dataElement ) );
-//		}
 		return response;
 	}
 
@@ -77,7 +77,7 @@ public class ProjectQuery {
 		return returnExpressionChain;
 	}
 
-	private static TQueryExpression parseProjectExpression( Value query ) throws FaultException {
+	private static ProjectExpression parseProjectExpression( Value query ) throws FaultException {
 		if ( query.isString() ) {
 			return new PathProjectExpression( query.strValue() );
 		} else {

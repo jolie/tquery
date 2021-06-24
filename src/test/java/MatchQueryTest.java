@@ -89,7 +89,7 @@ public class MatchQueryTest {
 		}
 	}
 
-	private static String data = "[\n" +
+	private static final String data = "[\n" +
 					"    {\n" +
 					"      \"date\": [20201127],\n" +
 					"      \"t\":[\n" +
@@ -144,7 +144,7 @@ public class MatchQueryTest {
 					"    }\n" +
 					"  ]";
 
-	private static String query = "{\n" +
+	private static final String query = "{\n" +
 					"      \"or\": {\n" +
 					"        \"left\": {\n" +
 					"          \"equal\": {\n" +

@@ -24,120 +24,125 @@
 package joliex.tquery.engine.common;
 
 import java.util.Optional;
+import java.util.concurrent.Flow;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import jolie.runtime.CanUseJars;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 /**
  * This class implements {@link Path}s. We use {@link Path}s in
  * the TQuery framework for ephemeral data handling over trees.
- *
  */
 public class Path {
 
-    private static final String PATH_SEPARATOR = ".";
+	private static final String PATH_SEPARATOR = ".";
 
-    private final String node;
-    private final Optional<Path> continuation;
+	private final String node;
+	private final Optional< Path > continuation;
 
-    private Path( String node, Optional<Path> continuation ) {
-        this.node = node;
-        this.continuation = continuation;
-    }
+	private Path( String node, Optional< Path > continuation ) {
+		this.node = node;
+		this.continuation = continuation;
+	}
 
-    public String getCurrentNode(){
-        return node;
-    }
+	public String getCurrentNode() {
+		return node;
+	}
 
-    public Optional<Path> getContinuation(){
-        return continuation;
-    }
+	public Optional< Path > getContinuation() {
+		return continuation;
+	}
 
-    /**
-     * It parses a
-     * <pre>String</pre>, e.g. a.b.c, and recursively build a
-     * {@link Path} with a node in the root and a {@link Path} as its
-     * continuation
-     *
-     * @param path the <pre>String</pre> representing the {@link Path}
-     * @return
-     *
-     */
-    public static Path parsePath( String path ) {
-        path = path.trim();
-        int idx = path.indexOf( PATH_SEPARATOR );
-        if( idx > 0 ){
-            try {
-                return new Path( path.substring( 0, idx ), Optional.of( parsePath( path.substring( idx + 1 ) ) ) );
-            } catch ( IllegalArgumentException e ){
-                throw new IllegalArgumentException( "Could not parse path \"" + path + "\"" );
-            }
-        } else if ( path.length() > 0 ) {
-            return new Path( path, Optional.empty() );
-        } else {
-            throw new IllegalArgumentException( "Could not parse path \"" + path + "\"" );
-        }
-    }
+	/**
+	 * It parses a
+	 * <pre>String</pre>, e.g. a.b.c, and recursively build a
+	 * {@link Path} with a node in the root and a {@link Path} as its
+	 * continuation
+	 *
+	 * @param path the <pre>String</pre> representing the {@link Path}
+	 * @return
+	 */
+	public static Path parsePath( String path ) throws FaultException {
+		path = path.trim();
+		int idx = path.indexOf( PATH_SEPARATOR );
+		if ( idx > 0 ) {
+			try {
+				return new Path( path.substring( 0, idx ), Optional.of( parsePath( path.substring( idx + 1 ) ) ) );
+			} catch ( FaultException e ) {
+				throw new FaultException( "Could not parse path \"" + path + "\"" );
+			}
+		} else if ( path.length() > 0 ) {
+			return new Path( path, Optional.empty() );
+		} else {
+			throw new FaultException( "Could not parse path \"" + path + "\"" );
+		}
+	}
 
-    /**
-     *
-     * @param value
-     * @return
-     */
-    public Optional<ValueVector> apply( Value value ) {
-        if ( value.hasChildren( node ) ){
-            if( continuation.isPresent() ){
-                Optional<ValueVector> childrenOptional = Optional.empty();
-                ValueVector children = ValueVector.create();
-                for ( Value child : value.getChildren( node ) ) {
-                    Optional<ValueVector> grandchildren = continuation.get().apply( child );
-                    if( grandchildren.isPresent() ){
-                        if( childrenOptional.isEmpty() ){ childrenOptional = Optional.of( children ); }
-                        for( Value grandchild : grandchildren.get() ){
-                            children.add( grandchild );
-                        }
-                    }
-                }
-                return childrenOptional;
-            } else {
-                return Optional.of( value.getChildren( node ) );
-            }
-        } else {
-            return Optional.empty();
-        }
-    }
+	/**
+	 * @param value
+	 * @return
+	 */
+	public Optional< ValueVector > apply( Value value ) {
+		if ( value.hasChildren( node ) ) {
+			if ( continuation.isPresent() ) {
+				ValueVector children = ValueVector.create();
+				Flowable.range( 0, value.getChildren( node ).size() )
+								.subscribeOn( Schedulers.computation() )
+								.map( value.getChildren( node )::get )
+								.blockingSubscribe( child -> {
+									Optional< ValueVector > grandChildren = continuation.get().apply( child );
+									grandChildren.ifPresent( values ->
+													Flowable.range( 0, values.size() )
+																	.map( values::get )
+																	.blockingSubscribe( children::add ) );
+								} );
+				return children.size() > 0 ? Optional.of( children ) : Optional.empty();
+			} else {
+				return Optional.of( value.getChildren( node ) );
+			}
+		} else {
+			return Optional.empty();
+		}
+	}
 
-    /**
-     * Checks the presence of a given {@link Path} in a {@link Value}, it can
-     * be used for first sanity check on the query to look for
-     *
-     * @param value
-     * @return  <pre>true</pre> or <pre>false</pre> wether the entire path is
-     * present in the given {@link Value}
-     */
-    public boolean exists( Value value ){
-        if ( value.hasChildren( node ) ){
-            if( continuation.isPresent() ) {
-                for ( Value child : value.getChildren( node ) ) {
-                    if( continuation.get().exists( child ) ){
-                        return true;
-                    }
-                }
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            return false;
-        }
-    }
+	/**
+	 * Checks the presence of a given {@link Path} in a {@link Value}, it can
+	 * be used for first sanity check on the query to look for
+	 *
+	 * @param value
+	 * @return <pre>true</pre> or <pre>false</pre> wether the entire path is
+	 * present in the given {@link Value}
+	 */
+	public boolean exists( Value value ) {
+		if ( value.hasChildren( node ) ) {
+			if ( continuation.isPresent() ) {
+				for ( Value child : value.getChildren( node ) ) {
+					if ( continuation.get().exists( child ) ) {
+						return true;
+					}
+				}
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
 
-    /**
-     * It gives a nice <pre>String</pre> representation of a {@link Path}
-     *
-     * @return the <pre>String</pre> representation of this {@link Path}
-     */
-    public String toPrettyString() {
-        return node + ( continuation.isPresent() ? PATH_SEPARATOR + continuation.get().toPrettyString() : "" );
-    }
+	/**
+	 * It gives a nice <pre>String</pre> representation of a {@link Path}
+	 *
+	 * @return the <pre>String</pre> representation of this {@link Path}
+	 */
+	public String toPrettyString() {
+		return node + ( continuation.map( path -> PATH_SEPARATOR + path.toPrettyString() ).orElse( "" ) );
+	}
 
 }

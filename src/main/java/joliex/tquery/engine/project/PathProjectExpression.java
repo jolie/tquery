@@ -23,6 +23,9 @@
 
 package joliex.tquery.engine.project;
 
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.tquery.engine.common.Path;
@@ -30,11 +33,11 @@ import joliex.tquery.engine.common.TQueryExpression;
 
 import java.util.Optional;
 
-public class PathProjectExpression implements TQueryExpression {
+public class PathProjectExpression implements ProjectExpression {
 
 	private final Path path;
 	
-	public PathProjectExpression( String path ) {
+	public PathProjectExpression( String path ) throws FaultException {
 		this.path = Path.parsePath( path );
 	}
 	
@@ -43,16 +46,7 @@ public class PathProjectExpression implements TQueryExpression {
 	}
 
 	@Override
-	public ValueVector applyOn( ValueVector elements ) {
-		ValueVector returnVector = ValueVector.create();
-		for ( Value element : elements ) {
-			returnVector.add( this.applyOn( element ) );
-		}
-		return returnVector;
-	}
-
-	@Override
-	public Value applyOn( Value element ) {
+	public Value applyOn( Value element ) throws FaultException {
 		Value returnValue = Value.create();
 		Optional<ValueVector> valueVector = Path.parsePath( path.getCurrentNode() ).apply( element );
 		if( valueVector.isPresent() ) {

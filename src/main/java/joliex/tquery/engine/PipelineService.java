@@ -31,6 +31,9 @@ import joliex.tquery.engine.pipeline.PipelineQuery;
 public class PipelineService {
 
 	static Value pipeline( Value request ) throws FaultException {
-		return PipelineQuery.pipeline( request );
+		long start = System.currentTimeMillis();
+		Value response = PipelineQuery.pipeline( request );
+		response.setFirstChild( "queryTime", ( System.currentTimeMillis() - start ) );
+		return response;
 	}
 }

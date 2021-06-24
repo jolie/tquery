@@ -72,13 +72,13 @@ public final class PipelineQuery {
 				Value response = MatchQuery.match( pipelineRequest );
 				pipelineRequest.children().put( RequestType.DATA, response.getChildren( TQueryExpression.ResponseType.RESULT ) );
 
-			} else  if ( stage.hasChildren( RequestType.QuerySubtype.PROJECT_QUERY ) ) {
+			} else if ( stage.hasChildren( RequestType.QuerySubtype.PROJECT_QUERY ) ) {
 
 				pipelineRequest.children().put( QUERY, stage.getChildren( RequestType.QuerySubtype.PROJECT_QUERY ) );
 				Value response = ProjectQuery.project( pipelineRequest );
 				pipelineRequest.children().put( RequestType.DATA, response.getChildren( TQueryExpression.ResponseType.RESULT ) );
 
-			} else  if ( stage.hasChildren( RequestType.QuerySubtype.UNWIND_QUERY ) ) {
+			} else if ( stage.hasChildren( RequestType.QuerySubtype.UNWIND_QUERY ) ) {
 
 				pipelineRequest.children().put( QUERY, stage.getChildren( RequestType.QuerySubtype.UNWIND_QUERY ) );
 				Value response = UnwindQuery.unwind( pipelineRequest );
@@ -110,9 +110,7 @@ public final class PipelineQuery {
 				pipelineRequest.children().put( RequestType.DATA, response.getChildren( TQueryExpression.ResponseType.RESULT ) );
 
 			} else {
-
 				throw new FaultException( "Unrecognized operation at position " + i );
-
 			}
 
 		}

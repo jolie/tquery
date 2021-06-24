@@ -31,7 +31,7 @@ import joliex.tquery.engine.common.TQueryExpression;
 import joliex.tquery.engine.project.valuedefinition.ValueDefinition;
 import joliex.tquery.engine.project.valuedefinition.ValueDefinitionParser;
 
-public class ValueToPathProjectExpression implements TQueryExpression {
+public class ValueToPathProjectExpression implements ProjectExpression {
 
 	private final Path destination_path;
 	private final ValueDefinition valueDefinition;
@@ -45,16 +45,7 @@ public class ValueToPathProjectExpression implements TQueryExpression {
 		this.destination_path = destination_path;
 		this.valueDefinition = valueDefinition;
 	}
-	
-	@Override
-	public ValueVector applyOn( ValueVector elements ) throws FaultException {
-		ValueVector returnVector = ValueVector.create();
-		for ( Value element : elements ) {
-			returnVector.add( this.applyOn( element ) );
-		}
-		return returnVector;
-	}
-	
+
 	@Override
 	public Value applyOn( Value element ) throws FaultException {
 		Value returnValue = Value.create();
