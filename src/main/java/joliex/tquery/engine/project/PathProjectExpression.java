@@ -36,26 +36,26 @@ import java.util.Optional;
 public class PathProjectExpression implements ProjectExpression {
 
 	private final Path path;
-	
+
 	public PathProjectExpression( String path ) throws FaultException {
 		this.path = Path.parsePath( path );
 	}
-	
-	private PathProjectExpression( Path path ){
+
+	private PathProjectExpression( Path path ) {
 		this.path = path;
 	}
 
 	@Override
 	public Value applyOn( Value element ) throws FaultException {
 		Value returnValue = Value.create();
-		Optional<ValueVector> valueVector = Path.parsePath( path.getCurrentNode() ).apply( element );
-		if( valueVector.isPresent() ) {
+		Optional< ValueVector > valueVector = Path.parsePath( path.getCurrentNode() ).apply( element );
+		if ( valueVector.isPresent() ) {
 			returnValue.children().put( path.getCurrentNode(), valueVector.get() );
-			if( path.getContinuation().isPresent() ){
+			if ( path.getContinuation().isPresent() ) {
 				returnValue = new PathProjectExpression( path.getContinuation().get() ).applyOn( returnValue );
 			}
 		}
 		return returnValue;
 	}
-	
+
 }

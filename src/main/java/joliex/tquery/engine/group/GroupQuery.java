@@ -132,7 +132,7 @@ public final class GroupQuery {
 		if ( paths.size() < 0 ) {
 			throw new FaultException( "getMatchGroupingExpression received a combination of size 0" ); //todo: refine this error into a Fault
 		} else {
-			MatchExpression currentExpression = new EqualExpression( paths.get( 0 ), paths.get( 0 ).apply( v ).get() ); // we can always get here, because we passed the existence tests in the group method
+			MatchExpression currentExpression = new EqualDataExpression( paths.get( 0 ), paths.get( 0 ).apply( v ).get() ); // we can always get here, because we passed the existence tests in the group method
 			if ( paths.size() > 1 ) {
 				return BinaryExpression.AndExpression(
 								currentExpression,

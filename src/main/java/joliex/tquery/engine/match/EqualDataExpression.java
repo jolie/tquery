@@ -13,7 +13,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
  *   GNU General Public License for more details.                              *
  *                                                                             *
- *   You should have received a copy of the GNU Library General Public         * 
+ *   You should have received a copy of the GNU Library General Public         *
  *   License along with this program; if not, write to the                     *
  *   Free Software Foundation, Inc.,                                           *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
@@ -21,39 +21,29 @@
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
 
-package joliex.tquery.engine.project.valuedefinition;
+package joliex.tquery.engine.match;
 
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import joliex.tquery.engine.match.MatchExpression;
+import joliex.tquery.engine.common.Path;
+import joliex.tquery.engine.common.Utils;
 
-public class TernaryValueDefinition implements ValueDefinition {
+import java.util.Optional;
 
-	private final MatchExpression condition;
-	private final ValueDefinition ifTrue, ifFalse;
+public class EqualDataExpression implements MatchExpression {
 
-	public TernaryValueDefinition( MatchExpression condition, ValueDefinition ifTrue, ValueDefinition ifFalse ) {
-		this.condition = condition;
-		this.ifTrue = ifTrue;
-		this.ifFalse = ifFalse;
+	private final Path path;
+	private final ValueVector vector;
+
+	public EqualDataExpression( Path path, ValueVector vector ){
+		this.path = path;
+		this.vector = vector;
 	}
 
 	@Override
-	public ValueVector evaluate( Value value ) {
-		if ( condition.applyOn( value ) ) {
-			return ifTrue.evaluate( value );
-		} else {
-			return ifFalse.evaluate( value );
-		}
-	}
-
-	@Override
-	public boolean isDefined( Value value ) {
-		if ( condition.applyOn( value ) ) {
-			return ifTrue.isDefined( value );
-		} else {
-			return ifFalse.isDefined( value );
-		}
+	public boolean applyOn( Value element ) {
+		Optional<ValueVector> pathApplication = path.apply( element );
+		return pathApplication.isPresent() && Utils.checkVectorEquality( pathApplication.get(), vector );
 	}
 
 }

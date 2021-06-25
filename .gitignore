@@ -11,3 +11,4 @@ dist/*
 target/*
 lib/*
 release/*
+release_test/*

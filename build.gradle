@@ -7,8 +7,10 @@ repositories {
     mavenCentral()
 }
 
-version "0.4.3"
+version "0.4.6"
 def releaseDir = file( "release" )
+def releaseTestDir = file( "release_test" )
+def testsDir = file( "tests" )
 
 dependencies {
     implementation 'org.apache.clerezza.ext:org.json.simple:0.4'
@@ -41,7 +43,7 @@ jar {
 
 import org.apache.tools.ant.filters.ReplaceTokens
 
-task makeRelease() {
+task makeRelease {
     tasks.compileJava.mustRunAfter( clean )
     dependsOn( clean )
     dependsOn( build )
@@ -65,6 +67,54 @@ task makeRelease() {
     }
 }
 
+task runReleaseTests {
+    dependsOn( clean )
+    dependsOn( build )
+    dependsOn tasks.named( "makeRelease" )
+    doLast{
+        println  "Running release tests"
+        // we download and move the libraries into lib
+        exec {
+            commandLine "jpm", "install"
+        }
+        // we copy the libs and the JavaService into lib
+        copy {
+            from( "lib" ){
+                include "*.jar"
+            }
+            into releaseTestDir.toPath().resolve( "lib" )
+        }
+        delete "lib" // we remove the lib folder
+        copy {
+            from( releaseDir.toPath().resolve( "dist" ) ){
+                include "tquery*.jar"
+            }
+            into releaseTestDir.toPath().resolve( "lib" )
+        }
+        // we copy the test and data into the release test folder
+        copy {
+            from( testsDir ){
+                include "data/*"
+                include "pipelineTest.ol"
+            }
+            into releaseTestDir
+        }
+        // we copy main.ol into the release test folder
+        copy {
+            from( releaseDir ){
+                include "main.ol"
+            }
+            into releaseTestDir.toPath().resolve( "packages/@jolie/tquery" )
+        }
+        exec {
+            commandLine "jolie", "pipelineTest.ol"
+            workingDir releaseTestDir
+        }
+    }
+}
+makeRelease.finalizedBy( runReleaseTests )
+
 clean.doFirst{
     delete releaseDir
+    delete releaseTestDir
 }

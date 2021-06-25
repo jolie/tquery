@@ -26,19 +26,11 @@ package joliex.tquery.engine.match;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import jolie.util.Pair;
 import joliex.tquery.engine.common.Path;
 import joliex.tquery.engine.common.TQueryExpression;
 import joliex.tquery.engine.common.Utils;
 
-import java.util.LinkedList;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 public final class MatchQuery {
 
@@ -57,7 +49,7 @@ public final class MatchQuery {
 			private static final String LEFT = "left";
 			private static final String RIGHT = "right";
 			private static final String PATH = "path";
-			private static final String VALUE = "value";
+			private static final String DATA = "data";
 		}
 	}
 
@@ -88,10 +80,11 @@ public final class MatchQuery {
 	//type MatchRequestType : void {
 	//.data*                : undefined
 	//.query                : void {
-	//    .not                  : MatchExp
+	//    	.not                : MatchExp
 	//    | .or                 : void { .left: MatchExp, .right: MatchExp }
 	//    | .and                : void { .left: MatchExp, .right: MatchExp }
-	//    | .equal              : void { .path: Path, .value[1,*]: undefined }
+	//    | .equal              : void { .path: Path, .data[1,*]: undefined }
+	//    | .equal              : void { .left: Path, .right: Path }
 	//    | .exists             : Path
 	//    | bool
 
@@ -102,10 +95,17 @@ public final class MatchQuery {
 			if ( query.isBool() ) {
 				return new BooleanExpression( query.boolValue() );
 			} else if ( query.hasChildren( RequestType.QuerySubtype.EQUAL ) ) {
-				return new EqualExpression(
-								Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getFirstChild( RequestType.QuerySubtype.PATH ).strValue() ),
-								query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getChildren( RequestType.QuerySubtype.VALUE )
-				);
+				if( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).hasChildren( RequestType.QuerySubtype.PATH ) ){
+					return new EqualDataExpression(
+									Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getFirstChild( RequestType.QuerySubtype.PATH ).strValue() ),
+									query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getChildren( RequestType.QuerySubtype.DATA )
+					);
+				} else {
+					return new EqualPathExpression(
+									Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getFirstChild( RequestType.QuerySubtype.LEFT ).strValue() ),
+									Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EQUAL ).getFirstChild( RequestType.QuerySubtype.RIGHT ).strValue() )
+					);
+				}
 			} else if ( query.hasChildren( RequestType.QuerySubtype.EXISTS ) ) {
 				return new ExistsExpression(
 								Path.parsePath( query.getFirstChild( RequestType.QuerySubtype.EXISTS ).strValue() )

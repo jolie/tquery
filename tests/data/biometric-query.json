@@ -5,7 +5,7 @@
         "left": {
           "equal": {
             "path": "date",
-            "value": 20201128
+            "data": 20201128
           }
         },
         "right": {
@@ -13,13 +13,13 @@
             "left": {
               "equal": {
                 "path": "date",
-                "value": 20201129
+                "data": 20201129
               }
             },
             "right": {
               "equal": {
                 "path": "date",
-                "value": 20201130
+                "data": 20201130
               }
             }
           }

@@ -30,20 +30,23 @@ import joliex.tquery.engine.common.Utils;
 
 import java.util.Optional;
 
-public class EqualExpression implements MatchExpression {
+public class EqualPathExpression implements MatchExpression {
 
-	private final Path path;
-	private final ValueVector vector;
+	private final Path left;
+	private final Path right;
 
-	public EqualExpression( Path path, ValueVector vector ){
-		this.path = path;
-		this.vector = vector;
+	public EqualPathExpression( Path left, Path right ){
+		this.left = right;
+		this.right = left;
 	}
 
 	@Override
 	public boolean applyOn( Value element ) {
-		Optional<ValueVector> pathApplication = path.apply( element );
-		return pathApplication.isPresent() && Utils.checkVectorEquality( pathApplication.get(), vector );
+		Optional<ValueVector> leftPathApplication = left.apply( element );
+		Optional< ValueVector > rightPathApplication = right.apply( element );
+		return ( leftPathApplication.isEmpty() && rightPathApplication.isEmpty() )
+						||
+						Utils.checkVectorEquality( leftPathApplication.get(), rightPathApplication.get() );
 	}
 
 }

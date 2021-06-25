@@ -36,12 +36,9 @@ public interface ProjectExpression {
 		Flowable.range( 0, elements.size() )
 						.subscribeOn( Schedulers.computation() )
 						.blockingSubscribe( i -> returnVector.set( i, this.applyOn( elements.get( i ) ) ) );
-		for ( Value element : elements ) {
-			returnVector.add( this.applyOn( element ) );
-		}
 		return returnVector;
 	}
 
-	Value	applyOn( Value element ) throws FaultException;
-	
+	Value applyOn( Value element ) throws FaultException;
+
 }

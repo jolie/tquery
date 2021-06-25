@@ -36,26 +36,26 @@ import java.util.logging.Logger;
 public class PathValueDefinition implements ValueDefinition {
 
 	private final Path path;
-	
+
 	public PathValueDefinition( String path ) throws FaultException {
 		this.path = Path.parsePath( path );
 	}
-	
+
 	@Override
 	public ValueVector evaluate( Value value ) {
 		return path.apply( value ).orElseGet( () -> {
-			Logger.getLogger(PathValueDefinition.class.getName())
-					.log( Level.SEVERE, null, new FaultException( "IllegalEvaluation",
-							"Tried to apply path " + path.toPrettyString() + " on " + Utils.valueToPrettyString( value ) ) );
+			Logger.getLogger( PathValueDefinition.class.getName() )
+							.log( Level.SEVERE, null, new FaultException( "IllegalEvaluation",
+											"Tried to apply path " + path.toPrettyString() + " on " + Utils.valueToPrettyString( value ) ) );
 			ValueVector v = ValueVector.create();
-			v.add(Value.create());
+			v.add( Value.create() );
 			return v;
-		});
+		} );
 	}
 
 	@Override
 	public boolean isDefined( Value value ) {
 		return path.exists( value );
 	}
-	
+
 }

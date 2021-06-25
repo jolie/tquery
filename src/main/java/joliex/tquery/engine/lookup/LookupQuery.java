@@ -8,12 +8,11 @@ import jolie.runtime.ValueVector;
 import joliex.tquery.engine.common.Path;
 import joliex.tquery.engine.common.TQueryExpression;
 import joliex.tquery.engine.common.Utils;
-import joliex.tquery.engine.match.EqualExpression;
+import joliex.tquery.engine.match.EqualDataExpression;
 import joliex.tquery.engine.project.ProjectExpression;
 import joliex.tquery.engine.project.ValueToPathProjectExpression;
 
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 public final class LookupQuery {
 	private static class RequestType {
@@ -69,7 +68,7 @@ public final class LookupQuery {
 										ValueVector values = optionalValues.get();
 
 										//check if the rightData array contains any tree under the rightPath with the content equals to the content of values
-										EqualExpression v = new EqualExpression( rightPath, values );
+										EqualDataExpression v = new EqualDataExpression( rightPath, values );
 										boolean[] mask = v.applyOn( rightData );
 
 										for ( int i = 0; i < mask.length; i++ ) {
