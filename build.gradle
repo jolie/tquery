@@ -7,7 +7,7 @@ repositories {
     mavenCentral()
 }
 
-version "0.4.6"
+version "0.4.8"
 def releaseDir = file( "release" )
 def releaseTestDir = file( "release_test" )
 def testsDir = file( "tests" )

@@ -1,5 +1,4 @@
-type Path             : string( regex( "[A-Za-z0-9._]*[A-Za-z0-9._]+" ) )
-
+type Path             : string( regex( "([A-Za-z_][A-Za-z_0-9]*\\.)*([A-Za-z_][A-Za-z_0-9]*)" ) )
 
 // MATCH
 
@@ -75,11 +74,9 @@ type ValueMatch       : void {
 }
 
 type ValueTernary     : void {
-  ternary             : void {
-		condition         : Match_Exp
-		ifTrue[1,*]       : Value
-		ifFalse[1,*]      : Value
-  }
+	condition         : Match_Exp
+	ifTrue[1,*]       : Value
+	ifFalse[1,*]      : Value
 }
 
 // GROUP

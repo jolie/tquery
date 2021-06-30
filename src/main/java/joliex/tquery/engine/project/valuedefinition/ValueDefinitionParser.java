@@ -33,58 +33,47 @@ import joliex.tquery.engine.match.MatchQuery;
 import java.util.ArrayList;
 
 public class ValueDefinitionParser {
-	
+
 	private static final class ValueDefinitionType {
 		private static final String PATH = "path";
 		private static final String MATCH = "match";
-		private static final String TERNARY = "ternary";
-		private static final class TernaryDefinitionSubtype {
-			private static final String CONDITION = "condition";
-			private static final String IF_TRUE = "ifTrue";
-			private static final String IF_FALSE = "ifFalse";
-		}
+		private static final String CONDITION = "condition";
+		private static final String IF_TRUE = "ifTrue";
+		private static final String IF_FALSE = "ifFalse";
 	}
-	
+
 	public static ValueDefinition parseValues( ValueVector values ) throws FaultException {
-		if ( values.size() == 1 ){
+		if ( values.size() == 1 ) {
 			return parseValue( values.get( 0 ) );
 		} else {
-			ArrayList<ValueDefinition> valueDefinitions = new ArrayList<>();
+			ArrayList< ValueDefinition > valueDefinitions = new ArrayList<>();
 			for ( Value value : values ) {
 				valueDefinitions.add( parseValue( value ) );
 			}
 			return new ListValueDefinition( valueDefinitions );
 		}
 	}
-	
+
 	public static ValueDefinition parseValue( Value value ) throws FaultException {
 		if ( value.hasChildren( ValueDefinitionType.PATH ) ) {
 			return new PathValueDefinition( value.getFirstChild( ValueDefinitionType.PATH ).strValue() );
 		} else if ( value.hasChildren( ValueDefinitionType.MATCH ) ) {
-			return new MatchValueDefinition( 
-					parseMatchExpression( value.getFirstChild( ValueDefinitionType.MATCH ) ) );
-		} else if ( value.hasChildren( ValueDefinitionType.TERNARY ) ){
-			Value subNodes = value.getFirstChild( ValueDefinitionType.TERNARY );
-			MatchExpression condition = parseMatchExpression( 
-					subNodes.getFirstChild( ValueDefinitionType.TernaryDefinitionSubtype.CONDITION 
-			) );
-			ValueDefinition ifTrue = parseValues( 
-					subNodes.getChildren( ValueDefinitionType.TernaryDefinitionSubtype.IF_TRUE )
-			);
-			ValueDefinition ifFalse = parseValues( subNodes.getChildren( 
-					ValueDefinitionType.TernaryDefinitionSubtype.IF_FALSE )
-			);
+			return new MatchValueDefinition( parseMatchExpression( value.getFirstChild( ValueDefinitionType.MATCH ) ) );
+		} else if ( value.hasChildren( ValueDefinitionType.CONDITION ) ) {
+			MatchExpression condition = parseMatchExpression( value.getFirstChild( ValueDefinitionType.CONDITION ) );
+			ValueDefinition ifTrue = parseValues( value.getChildren( ValueDefinitionType.IF_TRUE ) );
+			ValueDefinition ifFalse = parseValues( value.getChildren( ValueDefinitionType.IF_FALSE ) );
 			return new TernaryValueDefinition( condition, ifTrue, ifFalse );
 		} else {
 			return new ConstantValueDefinition( value );
 		}
 	}
-	
-	private static MatchExpression parseMatchExpression( Value value  ) throws FaultException{
-		return MatchQuery.parseMatchExpression( value ).orElseThrow( 
-					() -> new FaultException( 
-							"MatchQuerySyntaxException", 
-							"Could not parse query expression " + Utils.valueToPrettyString( value.getFirstChild( ValueDefinitionType.MATCH ) ) ) );
+
+	private static MatchExpression parseMatchExpression( Value value ) throws FaultException {
+		return MatchQuery.parseMatchExpression( value ).orElseThrow(
+						() -> new FaultException(
+										"MatchQuerySyntaxException",
+										"Could not parse query expression " + Utils.valueToPrettyString( value.getFirstChild( ValueDefinitionType.MATCH ) ) ) );
 	}
-	
+
 }

@@ -23,13 +23,10 @@
 
 package joliex.tquery.engine.project;
 
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.tquery.engine.common.Path;
-import joliex.tquery.engine.common.TQueryExpression;
 
 import java.util.Optional;
 
