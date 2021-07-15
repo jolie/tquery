@@ -35,12 +35,12 @@ public class ValueToPathProjectExpression implements ProjectExpression {
 
 	private final Path destination_path;
 	private final ValueDefinition valueDefinition;
-	
+
 	public ValueToPathProjectExpression( String destination_path, ValueVector values ) throws FaultException {
 		this.destination_path = Path.parsePath( destination_path );
 		valueDefinition = ValueDefinitionParser.parseValues( values );
 	}
-	
+
 	public ValueToPathProjectExpression( Path destination_path, ValueDefinition valueDefinition ) throws FaultException {
 		this.destination_path = destination_path;
 		this.valueDefinition = valueDefinition;
@@ -49,16 +49,16 @@ public class ValueToPathProjectExpression implements ProjectExpression {
 	@Override
 	public Value applyOn( Value element ) throws FaultException {
 		Value returnValue = Value.create();
-		if( valueDefinition.isDefined( element ) ){
-			if( destination_path.getContinuation().isPresent() ){
+		if ( valueDefinition.isDefined( element ) ) {
+			if ( destination_path.getContinuation().isPresent() ) {
 				ValueVector v = ValueVector.create();
-				v.add(new ValueToPathProjectExpression( destination_path.getContinuation().get(), valueDefinition ).applyOn( element ) );
+				v.add( new ValueToPathProjectExpression( destination_path.getContinuation().get(), valueDefinition ).applyOn( element ) );
 				returnValue.children().put( destination_path.getCurrentNode(), v );
-		} else {
-			returnValue.children().put( destination_path.getCurrentNode() , valueDefinition.evaluate( element ) );
+			} else {
+				returnValue.children().put( destination_path.getCurrentNode(), valueDefinition.evaluate( element ) );
 			}
 		}
 		return returnValue;
 	}
-	
+
 }

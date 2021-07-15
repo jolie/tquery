@@ -29,6 +29,7 @@ import jolie.runtime.ValueVector;
 import joliex.tquery.engine.common.TQueryExpression;
 import joliex.tquery.engine.common.Utils;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class ProjectExpressionChain implements ProjectExpression {
@@ -45,15 +46,16 @@ public class ProjectExpressionChain implements ProjectExpression {
 		if ( expressions.isEmpty() ) {
 			return element;
 		} else {
-			return applyOn( element, 0 );
+			return _applyOn( element, expressions.iterator() );
 		}
 	}
 
-	private Value applyOn( Value element, int index ) throws FaultException {
-		if ( expressions.size() - 1 > index ) {
-			return Utils.merge( expressions.get( index ).applyOn( element ), applyOn( element, ++index ) );
+	private Value _applyOn( Value element, Iterator< ProjectExpression > i ) throws FaultException {
+		ProjectExpression pe = i.next();
+		if( i.hasNext() ){
+			return Utils.merge( pe.applyOn( element ), _applyOn( element, i ) );
 		} else {
-			return expressions.get( index ).applyOn( element );
+			return pe.applyOn( element );
 		}
 	}
 }

@@ -24,13 +24,8 @@
 package joliex.tquery.engine.common;
 
 import java.util.Optional;
-import java.util.concurrent.Flow;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.IntStream;
 
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -92,15 +87,11 @@ public class Path {
 		if ( value.hasChildren( node ) ) {
 			if ( continuation.isPresent() ) {
 				ValueVector children = ValueVector.create();
-				Flowable.range( 0, value.getChildren( node ).size() )
-								.subscribeOn( Schedulers.computation() )
-								.map( value.getChildren( node )::get )
-								.blockingSubscribe( child -> {
+				value.getChildren( node )
+								.stream() // here we do not parallelise to preserve the ordering of the children
+								.forEach( child -> {
 									Optional< ValueVector > grandChildren = continuation.get().apply( child );
-									grandChildren.ifPresent( values ->
-													Flowable.range( 0, values.size() )
-																	.map( values::get )
-																	.blockingSubscribe( children::add ) );
+									grandChildren.ifPresent( values -> values.stream().forEach( children::add ) );
 								} );
 				return children.size() > 0 ? Optional.of( children ) : Optional.empty();
 			} else {

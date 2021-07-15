@@ -1,7 +1,5 @@
 package joliex.tquery.engine.lookup;
 
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -13,6 +11,7 @@ import joliex.tquery.engine.project.ProjectExpression;
 import joliex.tquery.engine.project.ValueToPathProjectExpression;
 
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 public final class LookupQuery {
 	private static class RequestType {
@@ -56,9 +55,9 @@ public final class LookupQuery {
 		}
 
 		try {
-			Flowable.range( 0, leftData.size() )
-							.subscribeOn( Schedulers.computation() )
-							.blockingSubscribe( index -> {
+			IntStream.range( 0, leftData.size() )
+							.parallel()
+							.forEach( index -> {
 								try {
 									ValueVector responseVector = ValueVector.create();
 									Value leftValue = leftData.get( index );

@@ -23,9 +23,6 @@
 
 package joliex.tquery.engine.match;
 
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
@@ -35,11 +32,11 @@ public interface MatchExpression {
 
 	default boolean[] applyOn( ValueVector elements ){
 		boolean[] mask = MatchUtils.getMask( elements );
-		Flowable.range( 0, elements.size() )
-						.subscribeOn( Schedulers.computation() )
-						.blockingSubscribe( i -> mask[ i ] = applyOn( elements.get( i ) ) );
+		IntStream.range( 0, elements.size() )
+						.parallel()
+						.forEach( i -> mask[ i ] = applyOn( elements.get( i ) ) );
 		return mask;
 	}
 
-	boolean	  applyOn( Value element );
+	boolean applyOn( Value element );
 }

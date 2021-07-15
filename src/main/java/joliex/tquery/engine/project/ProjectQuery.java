@@ -23,8 +23,6 @@
 
 package joliex.tquery.engine.project;
 
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -54,9 +52,9 @@ public class ProjectQuery {
 		response.children().put( TQueryExpression.ResponseType.RESULT, responseVector );
 
 		try {
-			Flowable.range( 0, dataElements.size() )
-							.subscribeOn( Schedulers.computation() )
-							.blockingSubscribe( i -> {
+			IntStream.range( 0, dataElements.size() )
+							.parallel()
+							.forEach( i -> {
 								try {
 									responseVector.set( i, projectExpression.applyOn( dataElements.get( i ) ) );
 								} catch ( Exception e ) {

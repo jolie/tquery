@@ -7,7 +7,7 @@ repositories {
     mavenCentral()
 }
 
-version "0.4.8"
+version "0.4.10"
 def releaseDir = file( "release" )
 def releaseTestDir = file( "release_test" )
 def testsDir = file( "tests" )
@@ -17,7 +17,6 @@ dependencies {
     implementation "org.jolie-lang:jolie:1.10.4"
     implementation "org.jolie-lang:libjolie:1.10.4"
     implementation "org.jolie-lang:jolie-js:1.10.4"
-    implementation "io.reactivex.rxjava3:rxjava:3.0.13"
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
     testImplementation 'org.junit.platform:junit-platform-runner:1.2.0'
 }

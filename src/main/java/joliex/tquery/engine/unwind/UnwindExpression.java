@@ -23,13 +23,12 @@
 
 package joliex.tquery.engine.unwind;
 
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import joliex.tquery.engine.common.Path;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 class UnwindExpression {
 
@@ -44,20 +43,24 @@ class UnwindExpression {
 
 		ValueVector[] batches = new ValueVector[ elements.size() ];
 
-		Flowable.range( 0, elements.size() )
-						.subscribeOn( Schedulers.computation() )
-						.blockingSubscribe( index -> {
-							String node = path.getCurrentNode();
-							Value element = elements.get( index );
-							ValueVector elementsContinuation = Path.parsePath( node )
-											.apply( element )
-											.orElse( ValueVector.create() );
-							if ( path.getContinuation().isPresent() ) {
-								elementsContinuation =
-												new UnwindExpression( path.getContinuation().get() )
-																.applyOn( Path.parsePath( node ).apply( element ).orElse( ValueVector.create() ) );
+		IntStream.range( 0, elements.size() )
+						.parallel()
+						.forEach( index -> {
+							try {
+								String node = path.getCurrentNode();
+								Value element = elements.get( index );
+								ValueVector elementsContinuation = Path.parsePath( node )
+												.apply( element )
+												.orElse( ValueVector.create() );
+								if ( path.getContinuation().isPresent() ) {
+									elementsContinuation =
+													new UnwindExpression( path.getContinuation().get() )
+																	.applyOn( Path.parsePath( node ).apply( element ).orElse( ValueVector.create() ) );
+								}
+								batches[ index ] = expand( element, elementsContinuation, node );
+							} catch ( Exception e ) {
+								e.printStackTrace(); // we should never reach this due to a Path.parse exception since the path is checked at the beginnign
 							}
-							batches[ index ] = expand( element, elementsContinuation, node );
 						} );
 		Arrays.stream( batches ).flatMap( ValueVector::stream ).forEach( resultElements::add );
 		return resultElements;
@@ -68,15 +71,15 @@ class UnwindExpression {
 	private ValueVector expand( Value element, ValueVector elements, String node ) {
 		ValueVector returnVector = ValueVector.create();
 
-		Flowable.range( 0, elements.size() )
-						.subscribeOn( Schedulers.computation() )
-						.blockingSubscribe( index -> {
+		IntStream.range( 0, elements.size() )
+						.parallel()
+						.forEach( index -> {
 							Value thisElement = Value.create();
 							returnVector.set( index, thisElement );
-							Flowable.fromStream(
-											element.children().keySet().stream().filter( key -> !key.equals( node ) )
-							).subscribeOn( Schedulers.computation() )
-											.blockingSubscribe( key ->
+							element.children().keySet().stream()
+											.filter( key -> !key.equals( node ) )
+											.parallel()
+											.forEach( key ->
 															thisElement.children().put( key, ValueVector.createClone( element.getChildren( key ) ) )
 											);
 							thisElement.children().put( node, getFreshValueVector( elements.get( index ) ) );
