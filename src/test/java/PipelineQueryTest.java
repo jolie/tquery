@@ -15,7 +15,6 @@ public class PipelineQueryTest {
 
 	public static void main( String[] args ) throws IOException {
 		sleeplogQuery();
-		Utils.executorService().shutdown();
 	}
 
 	public static ValueVector biometricQuery() throws IOException {
