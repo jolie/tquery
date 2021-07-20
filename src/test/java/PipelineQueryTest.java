@@ -15,15 +15,16 @@ public class PipelineQueryTest {
 
 	public static void main( String[] args ) throws IOException {
 		sleeplogQuery();
+		Utils.executorService().shutdown();
 	}
 
 	public static ValueVector biometricQuery() throws IOException {
-		String jsonString = Files.readString( Path.of( "tests/data/biometric-0.json" ) );
+		String jsonString = Files.readString( Path.of( "release_test/data/biometric-0.json" ) );
 		StringReader reader = new StringReader( jsonString );
 		Value data = Value.create();
 		JsUtils.parseJsonIntoValue( reader, data, false );
 
-		jsonString = Files.readString( Path.of( "tests/data/biometric-query.json" ) );
+		jsonString = Files.readString( Path.of( "release_test/data/biometric-query.json" ) );
 		jsonString = jsonString.replaceAll( "//.+", "" );
 		reader = new StringReader( jsonString );
 		Value pipeline = Value.create();
@@ -47,12 +48,12 @@ public class PipelineQueryTest {
 
 	public static void sleeplogQuery() throws IOException {
 
-		String jsonString = Files.readString( Path.of( "tests/data/sleeplog-0.json" ) );
+		String jsonString = Files.readString( Path.of( "release_test/data/sleeplog-0.json" ) );
 		StringReader reader = new StringReader( jsonString );
 		Value data = Value.create();
 		JsUtils.parseJsonIntoValue( reader, data, false );
 
-		jsonString = Files.readString( Path.of( "tests/data/sleeplog-query.json" ) );
+		jsonString = Files.readString( Path.of( "release_test/data/sleeplog-query.json" ) );
 		jsonString = jsonString.replaceAll( "//.+", "" );
 		reader = new StringReader( jsonString );
 		Value pipeline = Value.create();

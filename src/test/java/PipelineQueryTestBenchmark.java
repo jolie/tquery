@@ -19,11 +19,11 @@ public class PipelineQueryTestBenchmark {
 
 	public static void main( String[] args ) throws IOException {
 
-		Value biometricData = getValueFromJson( "tests/data/biometric-5.json" );
-		Value biometricQuery = getValueFromJson( "tests/data/biometric-query.json" );
+		Value biometricData = getValueFromJson( "release_test/data/biometric-5.json" );
+		Value biometricQuery = getValueFromJson( "release_test/data/biometric-query.json" );
 
-		Value sleeplogData = getValueFromJson( "tests/data/sleeplog-5.json" );
-		Value sleeplogQuery = getValueFromJson( "tests/data/sleeplog-query.json" );
+		Value sleeplogData = getValueFromJson( "release_test/data/sleeplog-5.json" );
+		Value sleeplogQuery = getValueFromJson( "release_test/data/sleeplog-query.json" );
 
 		IntStream.range( 0, 3 ).mapToDouble( i ->
 			IntStream.range( 0, 20 ).parallel().map( _i -> {
@@ -42,7 +42,6 @@ public class PipelineQueryTestBenchmark {
 				return (int) queryTime;
 			} ).average().getAsDouble()
 		).average().ifPresent( avg -> System.out.println( "Benchmarks average: " + avg + " milliseconds" ) );
-
 
 	}
 
