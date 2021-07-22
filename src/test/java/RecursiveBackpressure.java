@@ -1,29 +1,23 @@
-import io.reactivex.rxjava3.core.Flowable;
-
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class RecursiveBackpressure {
 
 
-
 	private static List< ? > listOfList( Integer max ) {
-//		System.out.println( "Current thread: " + Thread.currentThread().getName() );
-//		ExecutorService e = Executors.newSingleThreadExecutor();
-		List< List< ? > > l = new LinkedList<>();
-		Flowable.range( 0, max )
+		List< ? >[] l = new List<?>[ max ];
+		IntStream.range( 0, max )
 //						.parallel()
-						.map( i -> { l.add( i, listOfList( max - 1 ) ); return 0; } )
-//						.sequential()
-						.blockingSubscribe();
-//		e.shutdown();
-		return l;
+						.forEach( i -> l[ i ] = listOfList( max - 1 ) );
+		return Arrays.asList( l );
 	}
 
 
 	public static void main( String[] args ) {
 		long s = System.currentTimeMillis();
-		List< ? > l = listOfList( 10 );
+		List< ? > l = listOfList( 11 );
 		long e = System.currentTimeMillis();
 //		System.out.println( l );
 		System.out.println( "done: " + ( e - s ) );
