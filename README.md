@@ -20,6 +20,8 @@ from @jolie.tquery.main import TQuery
 
 # Operators
 
+TQuery currently include the following operators: [Match](#Match),[Unwind],[Project],[Group],[Join], and [Pipeline]. 
+
 To illustrate the operators currently implemented in TQuery, we use the following data structure
 
 ```js
@@ -34,7 +36,7 @@ myData = [{"y":[2020],
       ]}]}]
 }]
 ```
-## Match 
+## Match[Match]
 
 The purpose of the match operator is to select trees in an array `a` according to a criterion, which can be
 (from left to right): i) the Boolean truth, ii) the existence of a path `p`, iii) the equality between the
@@ -56,7 +58,7 @@ match@Tquery( {
 }}}})( resp )
 ```
 
-## Unwind
+## Unwind[Unwind]
 
 The unwind operator unfolds the elements of an array under a given path `p`.
 
@@ -79,7 +81,7 @@ unfolds the data structure along the path `M.D.L`, returning
 ]
 ```
 
-## Projects
+## Project[Project]
 
 The project operator modifies the trees in an array by projecting nodes, renaming node labels, or introducing new nodes as a value definition. A value definition is either i) a value, ii) a path, iii) an array of value definitions, iv) a selection criterion or v) a ternary expression on a criterion and two value definitions.
 
@@ -105,7 +107,7 @@ respetively move and renames into their respective `dstPath`s the node `y` into 
 ]
 ```
 
-## Group
+## Group[Group]
 
 This operator groups the trees in an array according to an aggregate specification and it aggregates the values of the grouped trees according to a grouping specification.
 
@@ -125,7 +127,7 @@ obtaining a data structure like
   { "year":[2020],"month":[11],"day":[30],"quality":["poor", "good"]} ]
 ```
 
-## Lookup
+## Lookup[Lookup]
 
 The lookup operator joins trees in a source array with the trees in an adjunct array.
 The user indicates two paths, one for each array, so that the lookup operators can join trees in the two arrays whose values pointed by their respective paths coincide. If there is a match, the operators projects the matching value of the adjunct array into into the value of the source array, under a given projection path.
@@ -160,7 +162,7 @@ would return a data structure of the shape
   { "city" : "Imola", "temp" : 22, country: "IT",  "aff" : { "cid": "IT", "affiliation" : "EU" } } ]
 ```
 
-# Pipelines
+# Pipeline[Pipeline]
 
 TQuery also accepts the definition of multi-stage queries (e.g., to increase performance).
 
