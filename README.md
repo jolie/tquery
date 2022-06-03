@@ -166,20 +166,21 @@ TQuery also accepts the definition of multi-stage queries (e.g., to increase per
 
 The pipeline operation preserves almost the same syntax seen for each of the operators seen above, with the only main difference that the user specifies a sequence (as an array) of queries.
 
+For example, this invocation yeilds the same result as calling in sequence the examples shown for the unwind and project operators
+
 ```jolie
-type Pipeline: {
-  data*: undefined
-  pipeline[1,*]:
-      { matchQuery           : MatchRequest }
-    | { projectQuery[1,*]  : $\Pi$ }
-    | { unwindQuery        : Path  }
-    | { groupQuery         : Group_Exp }
-    | { lookupQuery        : {
-        leftPath   : Path
-        rightData* : undefined
-        rightPath  : Path
-        dstPath    : Path
-    }
-  }
+
+ps[0].unwindQuery = "M.D.L"
+
+ps[1] << { projectQuery[0] << 
+  { dstPath = "year" value.path = "y" }
+ projectQuery[1] << 
+  { dstPath = "month" value.path = "M.m" }
+ projectQuery[2] << 
+  { dstPath = "day" value.path = "M.D.d" }
+ projectQuery[3] << 
+  { dstPath = "quality" value.path = "M.D.L.q" }
 }
+
+pipeline@Tquery({ data << myData pipeline << ps })( resp )
 ```
