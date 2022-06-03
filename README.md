@@ -47,12 +47,12 @@ For example, the invocation below selects (in `resp`) all elements whose `date` 
 match@Tquery( { 
  data << myData
  query.and << { 
-  left.equal    << { path = "y", data = 2020 }
+  left.equal    << { path = "y" data = 2020 }
   right.and << {
-   left.equal   << { path = "M.m", data = 11 }
+   left.equal   << { path = "M.m" data = 11 }
    right.or << {
-    left.equal  << { path = "M.D.d", data = 29 }
-    right.equal << { path = "M.D.d", data = 30 }
+    left.equal  << { path = "M.D.d" data = 29 }
+    right.equal << { path = "M.D.d" data = 30 }
 }}}})( resp )
 ```
 
@@ -63,7 +63,7 @@ The unwind operator unfolds the elements of an array under a given path `p`.
 For example, the invocation
 
 ```jolie
-unwind@Tquery( { data << myData, query = "M.D.L" } )( unwindResp )
+unwind@Tquery( { data << myData query = "M.D.L" } )( unwindResp )
 ```
 
 unfolds the data structure along the path `M.D.L`, returning
@@ -87,12 +87,12 @@ For example, the invocation
 
 ```jolie
  project@Tquery( { 
-  data << unwindResp
+  data << unwindResp.result
   query[0] << {dstPath = "year"    value.path = "y"       }
   query[1] << {dstPath = "month"   value.path = "M.m"     }
   query[2] << {dstPath = "day"     value.path = "M.D.d"   }
   query[3] << {dstPath = "quality" value.path = "M.D.L.q" }
- })( resp )
+ })( projResp )
 ```
 
 respetively move and renames into their respective `dstPath`s the node `y` into `year`, the node `M.m` into `month` (same level as `year`), etc. This results into the data structure
@@ -107,4 +107,55 @@ respetively move and renames into their respective `dstPath`s the node `y` into 
 
 ## Group
 
+This operator groups the trees in an array according to an aggregate specification and it aggregates the values of the grouped trees according to a grouping specification.
+
+For example, the following invocation groups the projected data structure above by quality, where the aggregate specification indicates to project the `quality` node into a node with the same name
+
+```jolie
+group@Tquery( {
+data << projResp.result
+query.aggregate <<{ dstPath="quality" srcPath="quality"}
+})( groupResp )
+```
+
+obtaining a data structure like
+
+```json
+[ { "year":[2020],"month":[11],"day":[29],"quality":['good','good']} ,
+  { "year":[2020],"month":[11],"day":[30],"quality":['poor','good']} ]
+```
+
 ## Lookup
+
+The lookup operator joins trees in a source array with the trees in an adjunct array.
+The user indicates two paths, one for each array, so that the lookup operators can join trees in the two arrays whose values pointed by their respective paths coincide. If there is a match, the operators projects the matching value of the adjunct array into into the value of the source array, under a given projection path.
+
+For example, considering the data structures
+```js
+cities = [ { "city" : "Bologna", "temp" : 23, country: "IT" }, 
+         { "city" : "Odense", "temp": 13, country: "DK" }, 
+         { "city" : "Imola", "temp" : 22, country: "IT" } ]
+```
+and
+```js
+nations = [ { "cid" : "IT", "affiliation" : "EU" }, 
+         { "cid" : "DK", "affiliation": "EU" } ]
+```
+
+invoking the operation
+
+```jolie
+lookup@Tquery( {
+leftData  << cities  leftPath = "country"
+rightData << nations  rightPath = "cid"
+dstPath = "aff"
+})( resp )
+```
+
+would return a data structure of the shape
+
+```js
+[ { "city" : "Bologna", "temp" : 23, country: "IT", "aff" : { "cid": "IT", "affiliation" : "EU" } }, 
+  { "city" : "Odense", "temp": 13, country: "DK", "aff" : { "cid": "IT", "affiliation" : "EU" } }, 
+  { "city" : "Imola", "temp" : 22, country: "IT",  "aff" : { "cid": "IT", "affiliation" : "EU" } } ]
+```
