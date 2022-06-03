@@ -121,8 +121,8 @@ query.aggregate <<{ dstPath="quality" srcPath="quality"}
 obtaining a data structure like
 
 ```json
-[ { "year":[2020],"month":[11],"day":[29],"quality":['good','good']} ,
-  { "year":[2020],"month":[11],"day":[30],"quality":['poor','good']} ]
+[ { "year":[2020],"month":[11],"day":[29],"quality":["good", "good"]} ,
+  { "year":[2020],"month":[11],"day":[30],"quality":["poor", "good"]} ]
 ```
 
 ## Lookup
@@ -156,6 +156,30 @@ would return a data structure of the shape
 
 ```js
 [ { "city" : "Bologna", "temp" : 23, country: "IT", "aff" : { "cid": "IT", "affiliation" : "EU" } }, 
-  { "city" : "Odense", "temp": 13, country: "DK", "aff" : { "cid": "IT", "affiliation" : "EU" } }, 
+  { "city" : "Odense", "temp": 13, country: "DK", "aff" : { "cid": "DK", "affiliation" : "EU" } }, 
   { "city" : "Imola", "temp" : 22, country: "IT",  "aff" : { "cid": "IT", "affiliation" : "EU" } } ]
+```
+
+# Pipelines
+
+TQuery also accepts the definition of multi-stage queries (e.g., to increase performance).
+
+The pipeline operation preserves almost the same syntax seen for each of the operators seen above, with the only main difference that the user specifies a sequence (as an array) of queries.
+
+```jolie
+type Pipeline: {
+  data*: undefined
+  pipeline[1,*]:
+      { matchQuery           : MatchRequest }
+    | { projectQuery[1,*]  : $\Pi$ }
+    | { unwindQuery        : Path  }
+    | { groupQuery         : Group_Exp }
+    | { lookupQuery        : {
+        leftPath   : Path
+        rightData* : undefined
+        rightPath  : Path
+        dstPath    : Path
+    }
+  }
+}
 ```
