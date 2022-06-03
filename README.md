@@ -36,7 +36,7 @@ myData = [{"y":[2020],
       ]}]}]
 }]
 ```
-## Match[#Match]
+## Match
 
 The purpose of the match operator is to select trees in an array `a` according to a criterion, which can be
 (from left to right): i) the Boolean truth, ii) the existence of a path `p`, iii) the equality between the
