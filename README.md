@@ -38,10 +38,7 @@ myData = [{"y":[2020],
 ```
 ## Match
 
-The purpose of the match operator is to select trees in an array `a` according to a criterion, which can be
-(from left to right): i) the Boolean truth, ii) the existence of a path `p`, iii) the equality between the
-application of a path `p` and a given array `a`, iv) the equality between the applications of two paths `p1`
-and `p2`, and the logic connectives v) negation, vi) conjunction, and vii) disjunction.
+The purpose of the match operator is to select trees in a given array according to a criterion, which can be: i) the Boolean truth, ii) the existence of a path, iii) the equality between the array pointed by a path and a given array, iv) the equality between the arrays reached via two paths `p1` and `p2` on the given array, and the logic connectives v) negation, vi) conjunction, and vii) disjunction over the previous criteria.
 
 For example, the invocation below selects (in `resp`) all elements whose `date` corresponds to either `2020` `11` `29` or `2020` `11` `30`.
 
@@ -60,7 +57,7 @@ match@Tquery( {
 
 ## Unwind
 
-The unwind operator unfolds the elements of an array under a given path `p`.
+The unwind operator unfolds the elements of an array under a given path.
 
 For example, the invocation
 
@@ -83,7 +80,7 @@ unfolds the data structure along the path `M.D.L`, returning
 
 ## Project
 
-The project operator modifies the trees in an array by projecting nodes, renaming node labels, or introducing new nodes as a value definition. A value definition is either i) a value, ii) a path, iii) an array of value definitions, iv) a selection criterion or v) a ternary expression on a criterion and two value definitions.
+The project operator modifies the trees in an array by projecting nodes, renaming node labels, or introducing new nodes as value definitions. A value definition is either i) a value, ii) a path, iii) an array of value definitions, iv) a selection criterion or v) a ternary expression on a criterion and two value definitions.
 
 For example, the invocation
 
@@ -97,7 +94,7 @@ For example, the invocation
  })( projResp )
 ```
 
-respetively move and renames into their respective `dstPath`s the node `y` into `year`, the node `M.m` into `month` (same level as `year`), etc. This results into the data structure
+moves and renames into their respective `dstPath`s the node `y` into `year`, the node `M.m` into `month` (same level as `year`), etc. This results into the data structure
 
 ```js
 [ { "year":[ 2020 ], "month":[ 11 ],"day":[ 27 ], "quality":[ 'poor' ] },
@@ -109,9 +106,9 @@ respetively move and renames into their respective `dstPath`s the node `y` into 
 
 ## Group
 
-This operator groups the trees in an array according to an aggregate specification and it aggregates the values of the grouped trees according to a grouping specification.
+This operator aggregates the trees in an array according to an aggregation specification and it groups the values of the aggregated trees according to a grouping specification.
 
-For example, the following invocation groups the projected data structure above by quality, where the aggregate specification indicates to project the `quality` node into a node with the same name
+For example, the following invocation aggregates the elements in the projected data structure, above, by `quality`. There, the aggregation specification indicates to project the `quality` node into a node with the same name
 
 ```jolie
 group@Tquery( {
@@ -130,7 +127,7 @@ obtaining a data structure like
 ## Lookup
 
 The lookup operator joins trees in a source array with the trees in an adjunct array.
-The user indicates two paths, one for each array, so that the lookup operators can join trees in the two arrays whose values pointed by their respective paths coincide. If there is a match, the operators projects the matching value of the adjunct array into into the value of the source array, under a given projection path.
+The user indicates two paths, one for each array, so that the lookup operators can join trees in the two arrays whose values pointed by their respective paths coincide. If there is a match, the operator projects the matching value of the adjunct array into into the value of the source array, under a given projection path.
 
 For example, considering the data structures
 ```js
@@ -166,12 +163,11 @@ would return a data structure of the shape
 
 TQuery also accepts the definition of multi-stage queries (e.g., to increase performance).
 
-The pipeline operation preserves almost the same syntax seen for each of the operators seen above, with the only main difference that the user specifies a sequence (as an array) of queries.
+The pipeline operation preserves almost the same syntax seen for each of the operators above, with the main difference that the user specifies a sequence (as an array) of queries.
 
 For example, this invocation yeilds the same result as calling in sequence the examples shown for the unwind and project operators
 
 ```jolie
-
 ps[0].unwindQuery = "M.D.L"
 
 ps[1] << { projectQuery[0] << 
