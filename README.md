@@ -11,17 +11,17 @@ Tquery is particularly suited to develop real-time, ephemeral scenarios, where d
 If you use this software, please cite it using the following bibitem.
 
 ```bibtex
-@inproceedings{GMSZ19,
-  author = {Giallorenzo, Saverio and 
-           Montesi, Fabrizio and 
-           Safina, Larisa and 
-           Zingaro, Stefano Pio},
-  title = {Ephemeral Data Handling in Microservices},
-  booktitle = {2019 {IEEE} International Conference on Services Computing, {SCC} 2019, Milan, Italy, July 8-13, 2019},
-  pages = {234--236},
-  year = {2019},
-  doi = {10.1109/SCC.2019.00048},
-  publisher = {{IEEE}}
+@article{GMSZ22,
+  author    = {Saverio Giallorenzo and
+              Fabrizio Montesi and
+              Larisa Safina and
+              Stefano Pio Zingaro},
+  title     = {Ephemeral data handling in microservices with Tquery},
+  journal   = {PeerJ Comput. Sci.},
+  volume    = {8},
+  pages     = {e1037},
+  year      = {2022},
+  doi       = {10.7717/peerj-cs.1037},
 }
 ```
 
